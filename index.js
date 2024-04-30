@@ -7,14 +7,31 @@ let particleSize = 20;
 let myXvalue = 20;
 let myYvalue = 10;
 
+let myXYvalueSets = [
+  { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
+  { name: "slotMachine", x: 400, y: 30, globalX: 500, globalY: 0 },
+  { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
+  { name: "zigBrush", x: 400, y: 500, globalX: 20, globalY: 20 },
+  { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
+  { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
+  { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
+  { name: "schoolOfSnakes", x: 150, y: 400, globalX: 200, globalY: 200 },
+];
+let currentXYsetIndex = 0;
+let currentXYset = myXYvalueSets[currentXYsetIndex];
+
 let sequence = false; // Enable/disable sequence-based offsets
 let sequenceSpeed = 5;
 let lastUpdateTime = 0;
-let valueSets = [
-  { x: 30, y: 15 },
-  { x: 45, y: 25 },
-  { x: 60, y: 35 },
+
+const intervals = [
+  { x: 0, y: 0 },
+  { x: 15, y: 10 },
+  { x: 30, y: 20 },
+  { x: 45, y: 30 },
 ];
+let valueSets = [];
+
 let currentSet = { x: myXvalue, y: myYvalue };
 
 // Define multiple color palettes
@@ -105,6 +122,7 @@ function setup() {
       randomColors[x][y] = floor(random(currentPalette.length));
     }
   }
+  updateValueSets();
 }
 
 function draw() {
@@ -116,11 +134,11 @@ function draw() {
   if (sequence && currentTime - lastUpdateTime > sequenceSpeed) {
     updateSequenceValues();
     lastUpdateTime = currentTime; // Reset the last update time
-  } else if (!sequence) {
-    // Revert to default if sequence is not active
-    currentSet.x = myXvalue;
-    currentSet.y = myYvalue;
   }
+
+  // Update globalX and globalY from the current set
+  globalX = currentXYset.globalX;
+  globalY = currentXYset.globalY;
 
   for (let x = 0; x <= width; x += 32) {
     let currentColor; // To hold the color for each line or particle
@@ -149,11 +167,15 @@ function draw() {
       const yAngle = map(globalY, 0, height, 0, TWO_PI, true);
       const angle = xAngle * (x / width) + yAngle * (y / height);
 
-      const myX = x + currentSet.x * cos(32 * PI * t + angle);
-      const myY = y + currentSet.y * sin(9 * PI * t + angle);
+      const myX =
+        x +
+        (sequence ? currentSet.x : currentXYset.x) * cos(32 * PI * t + angle);
+      const myY =
+        y +
+        (sequence ? currentSet.y : currentXYset.y) * sin(9 * PI * t + angle);
 
       if (shapeMode === "rectangle") {
-        rect(myX, myY, particleSize);
+        rect(myX, myY, particleSize, particleSize);
       } else if (shapeMode === "ellipse") {
         ellipse(myX, myY, particleSize, particleSize);
       }
@@ -161,6 +183,14 @@ function draw() {
   }
 
   t += 0.0005; // Increment time variable
+}
+
+function updateValueSets() {
+  valueSets = intervals.map((interval) => ({
+    x: currentXYset.x + interval.x,
+    y: currentXYset.y + interval.y,
+  }));
+  console.log("Updated valueSets based on current myXYvalueSet:", valueSets);
 }
 
 function updateSequenceValues() {
@@ -188,17 +218,21 @@ function keyPressed() {
     currentPaletteIndex = (currentPaletteIndex + 1) % palettes.length;
     currentPalette = palettes[currentPaletteIndex];
     refreshRandomColors();
+    console.log("Palette changed to:", currentPalette);
   } else if (key.toUpperCase() === "Q") {
     currentPaletteIndex =
       (currentPaletteIndex - 1 + palettes.length) % palettes.length;
     currentPalette = palettes[currentPaletteIndex];
     refreshRandomColors();
+    console.log("Palette changed to:", currentPalette);
   } else if (key.toUpperCase() === "S") {
     sequence = !sequence;
+    console.log("Sequence mode toggled to:", sequence);
   } else if (key.toUpperCase() === "X") {
     // Move to next shape mode
     shapeModeIndex = (shapeModeIndex + 1) % shapeModes.length;
     shapeMode = shapeModes[shapeModeIndex];
+    console.log("Shape mode changed to:", shapeMode);
   } else if (key.toUpperCase() === "Z") {
     // Move to previous shape mode
     if (shapeModeIndex === 0) {
@@ -207,5 +241,17 @@ function keyPressed() {
       shapeModeIndex--;
     }
     shapeMode = shapeModes[shapeModeIndex];
+    console.log("Shape mode changed to:", shapeMode);
+  } else if (key.toUpperCase() === "F") {
+    currentXYsetIndex = (currentXYsetIndex + 1) % myXYvalueSets.length;
+    currentXYset = myXYvalueSets[currentXYsetIndex];
+    updateValueSets(); // Update sequence values relative to the new currentXYset
+    console.log("Current myXYvalueSet changed to:", currentXYset);
+  } else if (key.toUpperCase() === "D") {
+    currentXYsetIndex =
+      (currentXYsetIndex - 1 + myXYvalueSets.length) % myXYvalueSets.length;
+    currentXYset = myXYvalueSets[currentXYsetIndex];
+    updateValueSets(); // Update sequence values relative to the new currentXYset
+    console.log("Current myXYvalueSet changed to:", currentXYset);
   }
 }
