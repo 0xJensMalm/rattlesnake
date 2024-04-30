@@ -89,7 +89,9 @@ let palettes = [
 
 let currentPalette = palettes[0]; // Start with the first palette
 
-let shapeMode = "ellipse"; // Default shape
+let shapeModes = ["ellipse", "rectangle"];
+let shapeModeIndex = 0; // Start with the first shape mode in the array
+let shapeMode = shapeModes[shapeModeIndex];
 let colorMode = "each line"; // Default color mode
 let randomColors = []; // Array to store random colors for each position
 
@@ -151,9 +153,9 @@ function draw() {
       const myY = y + currentSet.y * sin(9 * PI * t + angle);
 
       if (shapeMode === "rectangle") {
-        rect(myX, myY, particleSize); // Draw rectangle
+        rect(myX, myY, particleSize);
       } else if (shapeMode === "ellipse") {
-        ellipse(myX, myY, particleSize, particleSize); // Draw ellipse
+        ellipse(myX, myY, particleSize, particleSize);
       }
     }
   }
@@ -182,18 +184,28 @@ function keyPressed() {
     colorMode = "each line";
   } else if (key === "3") {
     colorMode = "noise";
-  } else if (key.toUpperCase() === "T") {
-    // Increment the palette index and wrap around using modulo
+  } else if (key.toUpperCase() === "W") {
     currentPaletteIndex = (currentPaletteIndex + 1) % palettes.length;
     currentPalette = palettes[currentPaletteIndex];
     refreshRandomColors();
-  } else if (key.toUpperCase() === "R") {
-    // Decrement the palette index and wrap around if it goes below zero
+  } else if (key.toUpperCase() === "Q") {
     currentPaletteIndex =
       (currentPaletteIndex - 1 + palettes.length) % palettes.length;
     currentPalette = palettes[currentPaletteIndex];
     refreshRandomColors();
   } else if (key.toUpperCase() === "S") {
     sequence = !sequence;
+  } else if (key.toUpperCase() === "X") {
+    // Move to next shape mode
+    shapeModeIndex = (shapeModeIndex + 1) % shapeModes.length;
+    shapeMode = shapeModes[shapeModeIndex];
+  } else if (key.toUpperCase() === "Z") {
+    // Move to previous shape mode
+    if (shapeModeIndex === 0) {
+      shapeModeIndex = shapeModes.length - 1;
+    } else {
+      shapeModeIndex--;
+    }
+    shapeMode = shapeModes[shapeModeIndex];
   }
 }
