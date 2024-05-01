@@ -21,7 +21,7 @@ let currentXYsetIndex = 0;
 let currentXYset = myXYvalueSets[currentXYsetIndex];
 
 let sequence = false; // Enable/disable sequence-based offsets
-let sequenceSpeed = 5;
+let sequenceSpeed = 2;
 let lastUpdateTime = 0;
 
 const intervals = [
@@ -106,7 +106,7 @@ let palettes = [
 
 let currentPalette = palettes[0]; // Start with the first palette
 
-let shapeModes = ["ellipse", "rectangle"];
+let shapeModes = ["ellipse", "rectangle", "triangle", "line", "star"];
 let shapeModeIndex = 0; // Start with the first shape mode in the array
 let shapeMode = shapeModes[shapeModeIndex];
 let colorMode = "each line"; // Default color mode
@@ -174,15 +174,58 @@ function draw() {
         y +
         (sequence ? currentSet.y : currentXYset.y) * sin(9 * PI * t + angle);
 
-      if (shapeMode === "rectangle") {
-        rect(myX, myY, particleSize, particleSize);
-      } else if (shapeMode === "ellipse") {
-        ellipse(myX, myY, particleSize, particleSize);
+      switch (shapeMode) {
+        case "rectangle":
+          rect(myX, myY, particleSize, particleSize);
+          break;
+        case "ellipse":
+          ellipse(myX, myY, particleSize, particleSize);
+          break;
+        case "triangle":
+          drawTriangle(myX, myY, particleSize);
+          break;
+        case "line":
+          const lineWidth = 4; // Set the line width
+          stroke(currentColor.r, currentColor.g, currentColor.b); // Use current palette color
+          strokeWeight(lineWidth); // Apply the line width
+          line(myX, myY, myX + particleSize * 1, myY + particleSize * 1);
+          noStroke();
+          break;
+        case "star":
+          drawStar(myX, myY, particleSize / 2, particleSize, 5);
+          break;
       }
     }
   }
 
   t += 0.0005; // Increment time variable
+}
+
+function drawTriangle(x, y, size) {
+  const height = size * (sqrt(3) / 2);
+  triangle(
+    x - size / 2,
+    y + height / 2,
+    x + size / 2,
+    y + height / 2,
+    x,
+    y - height / 2
+  );
+}
+
+function drawStar(x, y, radius1, radius2, npoints) {
+  let angle = TWO_PI / npoints;
+  let halfAngle = angle / 2.0;
+  beginShape();
+  for (let a = 0; a < TWO_PI; a += angle) {
+    let sx = x + cos(a) * radius2;
+    let sy = y + sin(a) * radius2;
+    vertex(sx, sy);
+    sx = x + cos(a + halfAngle) * radius1;
+    sy = y + sin(a + halfAngle) * radius1;
+    vertex(sx, sy);
+  }
+  endShape(CLOSE);
 }
 
 function updateValueSets() {
