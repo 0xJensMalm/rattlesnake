@@ -8,7 +8,7 @@ new p5((sketch) => {
   let particleSize = 15;
   let t = 0; // time variable, make sure it's declared and used
   let shapeModes = ["ellipse", "rectangle", "hexagon", "line", "pentagon"];
-  let colorModes = ["random", "each line", "noise"];
+  let colorModes = ["each line", "checkerboard", "radial gradient"];
 
   let myXYvalueSets = [
     { name: "hammerhead", x: 350, y: 680, globalX: 125, globalY: 50 },
@@ -216,26 +216,27 @@ new p5((sketch) => {
     let colIndex = Math.floor(x / 32);
     let rowIndex = Math.floor(y / 32);
 
-    // Ensure the color array indexes are within bounds
-    if (colorMode === "random") {
-      if (
-        randomColors[colIndex] &&
-        randomColors[colIndex][rowIndex] !== undefined
-      ) {
-        return currentPalette.colors[randomColors[colIndex][rowIndex]];
-      }
-    } else if (colorMode === "noise") {
-      let noiseVal = sketch.noise(x * 0.1, y * 0.1); // Adjusted for higher contrast
-      let colorIndex = sketch.floor(noiseVal * currentPalette.colors.length);
-      if (colorIndex < currentPalette.colors.length) {
-        return currentPalette.colors[colorIndex];
-      }
+    if (colorMode === "each line") {
+      return currentPalette.colors[rowIndex % currentPalette.colors.length];
+    } else if (colorMode === "checkerboard") {
+      let checkerIndex = (colIndex + rowIndex) % 2; // Alternates between 0 and 1
+      return currentPalette.colors[
+        checkerIndex * (currentPalette.colors.length - 1)
+      ];
+    } else if (colorMode === "radial gradient") {
+      let centerX = sketch.width / 2;
+      let centerY = sketch.height / 2;
+      let distance = Math.sqrt(
+        Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
+      );
+      let maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
+      let gradientIndex = Math.floor(
+        (distance / maxDistance) * currentPalette.colors.length
+      );
+      return currentPalette.colors[gradientIndex];
     } else {
-      // 'each line' or other modes
-      return currentPalette.colors[(x / 32) % currentPalette.colors.length];
+      return { r: 255, g: 255, b: 255 }; // Fallback white color
     }
-    // Fallback color if all else fails
-    return { r: 255, g: 255, b: 255 }; // Return white as a default color
   }
 
   function drawShape(x, y, mode, size) {
