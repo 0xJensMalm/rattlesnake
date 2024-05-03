@@ -5,11 +5,13 @@ new p5((sketch) => {
 
   let globalX = 200;
   let globalY = 200;
-  let particleSize = 20;
+  let particleSize = 15;
   let t = 0; // time variable, make sure it's declared and used
   let shapeModes = ["ellipse", "rectangle", "hexagon", "line", "pentagon"];
   let colorModes = ["random", "each line", "noise"];
+
   let myXYvalueSets = [
+    { name: "hammerhead", x: 350, y: 680, globalX: 125, globalY: 50 },
     { name: "swells", x: 300, y: 400, globalX: 200, globalY: 100 },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
     { name: "slotMachine", x: 400, y: 30, globalX: 500, globalY: 0 },
@@ -20,6 +22,7 @@ new p5((sketch) => {
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
     { name: "schoolOfSnakes", x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
+
   let palettes = [
     {
       name: "Dark Golds",
@@ -113,6 +116,17 @@ new p5((sketch) => {
     },
   ];
 
+  const randomXY = false;
+
+  function getRandomXY() {
+    return {
+      x: 20 + $fx.rand() * (2000 - 20),
+      y: 20 + $fx.rand() * (2000 - 20),
+      globalX: 100 + $fx.rand() * (200 - 100),
+      globalY: $fx.rand() * 100,
+    };
+  }
+
   let shapeMode, colorMode, currentPalette, currentXYset;
   let randomColors = [];
 
@@ -121,12 +135,18 @@ new p5((sketch) => {
     sketch.noStroke();
 
     // Randomize settings
-    shapeMode = shapeModes[sketch.floor(sketch.random(shapeModes.length))];
-    colorMode = colorModes[sketch.floor(sketch.random(colorModes.length))];
-    currentPalette = palettes[sketch.floor(sketch.random(palettes.length))];
+    shapeMode = shapeModes[sketch.floor($fx.rand() * shapeModes.length)];
+    colorMode = colorModes[sketch.floor($fx.rand() * colorModes.length)];
+    currentPalette = palettes[sketch.floor($fx.rand() * palettes.length)];
     currentXYset =
       myXYvalueSets[sketch.floor(sketch.random(myXYvalueSets.length))];
 
+    if (randomXY) {
+      currentXYset = getRandomXY();
+    } else {
+      currentXYset =
+        myXYvalueSets[sketch.floor($fx.rand() * myXYvalueSets.length)];
+    }
     if (colorMode === "random") {
       refreshRandomColors();
     }
@@ -147,7 +167,7 @@ new p5((sketch) => {
   };
 
   sketch.draw = function () {
-    sketch.background(10, 10); // Translucent background to create trails
+    sketch.background(30, 30); // Translucent background to create trails
 
     // Update global coordinates from the current XY set every frame
     globalX = currentXYset.globalX;
@@ -193,36 +213,57 @@ new p5((sketch) => {
   };
 
   function getColor(x, y) {
+    let colIndex = Math.floor(x / 32);
+    let rowIndex = Math.floor(y / 32);
+
+    // Ensure the color array indexes are within bounds
     if (colorMode === "random") {
-      // Access the color from the colors array within the currentPalette
-      return currentPalette.colors[randomColors[x][y]];
+      if (
+        randomColors[colIndex] &&
+        randomColors[colIndex][rowIndex] !== undefined
+      ) {
+        return currentPalette.colors[randomColors[colIndex][rowIndex]];
+      }
     } else if (colorMode === "noise") {
-      let noiseVal = sketch.noise(x * 0.5, y * 0.05, t);
-      return currentPalette.colors[
-        sketch.floor(noiseVal * currentPalette.colors.length) %
-          currentPalette.colors.length
-      ];
+      let noiseVal = sketch.noise(x * 0.1, y * 0.1); // Adjusted for higher contrast
+      let colorIndex = sketch.floor(noiseVal * currentPalette.colors.length);
+      if (colorIndex < currentPalette.colors.length) {
+        return currentPalette.colors[colorIndex];
+      }
     } else {
+      // 'each line' or other modes
       return currentPalette.colors[(x / 32) % currentPalette.colors.length];
     }
+    // Fallback color if all else fails
+    return { r: 255, g: 255, b: 255 }; // Return white as a default color
   }
 
   function drawShape(x, y, mode, size) {
-    switch (mode) {
-      case "rectangle":
-        sketch.rect(x, y, size, size);
-        break;
-      case "ellipse":
-        sketch.ellipse(x, y, size, size);
-        break;
-      case "pentagon":
-        drawPentagon(x, y, size);
-        break;
-      case "hexagon":
-        drawHexagon(x, y, size);
-        break;
+    if (mode === "line") {
+      const lineWidth = 4;
+      let currentColor = getColor(x, y); // Ensures color is determined by your getColor logic
+      sketch.stroke(currentColor.r, currentColor.g, currentColor.b);
+      sketch.strokeWeight(lineWidth);
+      sketch.line(x, y, x + size, y + size);
+    } else {
+      sketch.noStroke(); // Ensure other shapes do not have strokes
+      switch (mode) {
+        case "rectangle":
+          sketch.rect(x, y, size, size);
+          break;
+        case "ellipse":
+          sketch.ellipse(x, y, size, size);
+          break;
+        case "pentagon":
+          drawPentagon(x, y, size);
+          break;
+        case "hexagon":
+          drawHexagon(x, y, size);
+          break;
+      }
     }
   }
+
   function drawPentagon(x, y, size) {
     sketch.beginShape();
     for (let i = 0; i < 5; i++) {
@@ -248,9 +289,12 @@ new p5((sketch) => {
 
   function refreshRandomColors() {
     randomColors = [];
-    for (let x = 0; x <= sketch.width; x += 32) {
-      for (let y = 0; y <= sketch.height; y += 32) {
-        randomColors[x][y] = sketch.floor(
+    for (let x = 0; x < sketch.width; x += 32) {
+      let colIndex = x / 32;
+      randomColors[colIndex] = []; // Initialize the sub-array here
+      for (let y = 0; y < sketch.height; y += 32) {
+        let rowIndex = y / 32;
+        randomColors[colIndex][rowIndex] = sketch.floor(
           sketch.random(currentPalette.colors.length)
         );
       }
