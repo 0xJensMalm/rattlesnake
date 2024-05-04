@@ -55,17 +55,18 @@ new p5((sketch) => {
 
   // Placeholder for XY value sets and palettes
   let myXYvalueSets = [
-    { name: "random light", ...getRandomValues("light", sketch) },
-    { name: "random mid", ...getRandomValues("mid", sketch) },
-    { name: "random hard", ...getRandomValues("hard", sketch) },
-    /*{ name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
-    { name: "slotMachine", x: 400, y: 30, globalX: 500, globalY: 0 },
+    { name: "random range light", ...getRandomValues("light", sketch) },
+    { name: "random range mid", ...getRandomValues("mid", sketch) },
+    { name: "random range mid plus", ...getRandomValues("midplus", sketch) },
+    { name: "random range hard", ...getRandomValues("hard", sketch) },
+    { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
+
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
-    { name: "zigBrush", x: 400, y: 500, globalX: 20, globalY: 20 },
+    { name: "z=g", x: 400, y: 500, globalX: 20, globalY: 20 },
     { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
     { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
-    { name: "schoolOfSnakes", x: 150, y: 400, globalX: 200, globalY: 200 },*/
+    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
 
   let palettes = {
@@ -132,7 +133,7 @@ new p5((sketch) => {
   currentPalette = palettes[currentPaletteName];
 
   function updateTIncrement() {
-    tIncrement = sketch.random(0.0001, 0.0004);
+    tIncrement = sketch.random(0.0001, 0.0003);
     $fx.features({
       "t Increment": tIncrement.toFixed(4),
     });
@@ -151,10 +152,10 @@ new p5((sketch) => {
     }
 
     $fx.features({
-      "Shape:": shapeMode,
-      "Palette Name": currentPaletteName,
-      "XY Value Set": currentXYset.name,
-      "Color Mode": colorMode,
+      "shape:": shapeMode,
+      "palette name": currentPaletteName,
+      "XY value set": currentXYset.name,
+      "color mode": colorMode,
       "t =": tIncrement.toFixed(4),
     });
   };
