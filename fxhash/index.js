@@ -13,7 +13,7 @@ new p5((sketch) => {
 
   // Shape and color mode configurations
   let shapeModes = ["ellipse", "rectangle", "triangle", "line", "star"];
-  let colorModes = ["checkerboard", "diagonal lines", "each line"];
+  let colorModes = ["checkerboard", "diagonal lines", "vertical"];
 
   function getRandomValues(mode, sketch) {
     const local = ranges[mode];
@@ -27,16 +27,23 @@ new p5((sketch) => {
 
   const ranges = {
     light: {
-      x: [10, 30],
-      y: [10, 30],
-      globalX: [100, 200],
-      globalY: [100, 200],
+      x: [10, 50],
+      y: [10, 50],
+      globalX: [50, 300],
+      globalY: [50, 300],
     },
     mid: {
+      //good!
       x: [150, 300],
       y: [150, 300],
       globalX: [300, 450],
       globalY: [300, 450],
+    },
+    midplus: {
+      x: [250, 500],
+      y: [250, 500],
+      globalX: [400, 550],
+      globalY: [400, 550],
     },
     hard: {
       x: [300, 450],
@@ -62,65 +69,53 @@ new p5((sketch) => {
   ];
 
   let palettes = {
-    "Gold Shades": [
-      { r: 0, g: 0, b: 0 },
-      { r: 128, g: 100, b: 0 },
-      { r: 255, g: 215, b: 0 },
-      { r: 255, g: 223, b: 0 },
+    jungle: [
+      { r: 34, g: 139, b: 34 }, // Deep jungle green
+      { r: 0, g: 153, b: 204 }, // Parrot feather blue
+      { r: 153, g: 50, b: 204 }, // Orchid purple
+      { r: 255, g: 140, b: 0 }, // Tropical sunset orange
     ],
-    "Blue Tones": [
-      { r: 0, g: 0, b: 0 },
-      { r: 0, g: 0, b: 128 },
-      { r: 0, g: 0, b: 255 },
-      { r: 173, g: 216, b: 230 },
+    golid4ever: [
+      { r: 31, g: 60, b: 67 },
+      { r: 248, g: 203, b: 87 },
+      { r: 87, g: 183, b: 171 },
+      { r: 236, g: 101, b: 59 },
     ],
-    "Forest Greens": [
-      { r: 1, g: 68, b: 33 },
-      { r: 4, g: 77, b: 46 },
-      { r: 9, g: 107, b: 61 },
-      { r: 34, g: 139, b: 34 },
+    tokyo: [
+      { r: 64, g: 224, b: 208 }, // Neon blue
+      { r: 255, g: 20, b: 147 }, // Electric pink
+      { r: 255, g: 215, b: 0 }, // Billboard yellow
+      { r: 255, g: 69, b: 0 }, // Traffic light red
     ],
-    "Sunset Vibrance": [
-      { r: 255, g: 87, b: 51 },
-      { r: 255, g: 165, b: 0 },
-      { r: 238, g: 130, b: 238 },
-      { r: 255, g: 99, b: 71 },
+    rainbow: [
+      { r: 255, g: 0, b: 0 }, // Vibrant red
+      { r: 255, g: 165, b: 0 }, // Electric orange
+      { r: 255, g: 255, b: 0 }, // Bright yellow
+      { r: 0, g: 128, b: 0 }, // Green fields
     ],
-    Monochrome: [
+    sunflower: [
+      { r: 255, g: 204, b: 0 }, // Sunflower yellow
+      { r: 101, g: 67, b: 33 }, // Dark seed brown
+      { r: 135, g: 206, b: 235 }, // Sky blue
+      { r: 124, g: 252, b: 0 }, // Leaf green
+    ],
+    monochrome: [
+      { r: 255, g: 255, b: 255 }, // Pure white
+      { r: 192, g: 192, b: 192 }, // Soft gray
+      { r: 128, g: 128, b: 128 }, // Deep gray
+      { r: 0, g: 0, b: 0 }, // Jet black
+    ],
+    angelic: [
       { r: 255, g: 255, b: 255 },
-      { r: 192, g: 192, b: 192 },
-      { r: 128, g: 128, b: 128 },
-      { r: 0, g: 0, b: 0 },
+      { r: 255, g: 255, b: 255 },
+      { r: 255, g: 255, b: 255 },
+      { r: 255, g: 255, b: 255 },
     ],
-    "Pastel Dreams": [
-      { r: 255, g: 182, b: 193 },
-      { r: 176, g: 224, b: 230 },
-      { r: 255, g: 218, b: 185 },
-      { r: 240, g: 230, b: 140 },
-    ],
-    "Ocean Depths": [
-      { r: 3, g: 37, b: 76 },
-      { r: 3, g: 54, b: 73 },
-      { r: 0, g: 88, b: 122 },
-      { r: 4, g: 130, b: 119 },
-    ],
-    Fireside: [
-      { r: 178, g: 34, b: 34 },
-      { r: 205, g: 92, b: 92 },
-      { r: 139, g: 69, b: 19 },
-      { r: 165, g: 42, b: 42 },
-    ],
-    "Spring Blossoms": [
-      { r: 255, g: 192, b: 203 },
-      { r: 255, g: 240, b: 245 },
-      { r: 124, g: 252, b: 0 },
-      { r: 127, g: 255, b: 212 },
-    ],
-    "Winter Chill": [
-      { r: 225, g: 255, b: 255 },
-      { r: 173, g: 216, b: 230 },
-      { r: 0, g: 191, b: 255 },
-      { r: 176, g: 224, b: 230 },
+    vibraSun: [
+      { r: 57, g: 0, b: 153 },
+      { r: 255, g: 0, b: 84 },
+      { r: 255, g: 84, b: 0 },
+      { r: 255, g: 189, b: 0 },
     ],
   };
 
@@ -137,7 +132,7 @@ new p5((sketch) => {
   currentPalette = palettes[currentPaletteName];
 
   function updateTIncrement() {
-    tIncrement = sketch.random(0.0001, 0.0005);
+    tIncrement = sketch.random(0.0001, 0.0004);
     $fx.features({
       "t Increment": tIncrement.toFixed(4),
     });
@@ -160,7 +155,7 @@ new p5((sketch) => {
       "Palette Name": currentPaletteName,
       "XY Value Set": currentXYset.name,
       "Color Mode": colorMode,
-      "t Increment": tIncrement.toFixed(4),
+      "t =": tIncrement.toFixed(4),
     });
   };
 
@@ -197,8 +192,8 @@ new p5((sketch) => {
     } else if (colorMode === "diagonal lines") {
       // Creates diagonal lines by checking the modulo of the sum of the coordinates
       return Math.floor((x + y) / 32) % currentPalette.length;
-    } else if (colorMode === "each line") {
-      // Consistently apply the same color for each line
+    } else if (colorMode === "vertical") {
+      // Consistently apply the same color for vertical
       return Math.floor(x / 32) % currentPalette.length;
     }
   }
@@ -242,7 +237,7 @@ new p5((sketch) => {
   }
 
   function drawLine(x, y, size, color, p) {
-    const lineWidth = 4; // Consistent with the original script
+    const lineWidth = 5; // Consistent with the original script
     p.stroke(color.r, color.g, color.b); // Use dynamic color
     p.strokeWeight(lineWidth);
     p.line(x, y, x + size, y + size);
