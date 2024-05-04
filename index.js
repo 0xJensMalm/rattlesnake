@@ -1,13 +1,13 @@
 let t = 0; // time variable
-let globalX = 200;
-let globalY = 200;
-let myXvalue = 20;
-let myYvalue = 10;
+let globalX = 200; // initially replacing mouseX
+let globalY = 200; // initially replacing mouseY
 
 let particleSize = 20;
 
+let myXvalue = 20;
+let myYvalue = 10;
+
 let myXYvalueSets = [
-  { name: "swells", x: 300, y: 400, globalX: 200, globalY: 100 },
   { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
   { name: "slotMachine", x: 400, y: 30, globalX: 500, globalY: 0 },
   { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
@@ -21,14 +21,14 @@ let currentXYsetIndex = 0;
 let currentXYset = myXYvalueSets[currentXYsetIndex];
 
 let sequence = false; // Enable/disable sequence-based offsets
-let sequenceSpeed = 10;
+let sequenceSpeed = 2;
 let lastUpdateTime = 0;
 
 const intervals = [
   { x: 0, y: 0 },
-  { x: 33, y: 10 },
-  { x: -30, y: 20 },
-  { x: -0, y: 30 },
+  { x: 15, y: 10 },
+  { x: 30, y: 20 },
+  { x: 45, y: 30 },
 ];
 let valueSets = [];
 
