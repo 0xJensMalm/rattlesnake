@@ -11,26 +11,58 @@ new p5((sketch) => {
   let globalY = 200;
   let particleSize = 18;
 
+  let spacingModes = {
+    regular: 32,
+    dense: 28,
+    densePlus: 24,
+    extreme: 18,
+  };
+
   // Shape and color mode configurations
-  let shapeModes = ["ellipse", "rectangle", "triangle", "line", "star"];
+  let shapeModes = [
+    "ellipse",
+    "rectangle",
+    "triangle",
+    "line",
+    "star",
+    "angled line",
+    "cross",
+  ];
   let colorModes = ["checkerboard", "diagonal lines", "vertical"];
+
+  function setParticleSpacing() {
+    const keys = Object.keys(spacingModes);
+    const selectedKey = keys[sketch.floor(sketch.random(keys.length))];
+    return {
+      mode: selectedKey,
+      spacing: spacingModes[selectedKey],
+    };
+  }
+  let { mode: particleSpacingMode, spacing: particleSpacing } =
+    setParticleSpacing();
 
   function getRandomValues(mode, sketch) {
     const local = ranges[mode];
-    return {
+    const values = {
+      // Capture values in a variable to log them
       x: sketch.random(local.x[0], local.x[1]),
       y: sketch.random(local.y[0], local.y[1]),
       globalX: sketch.random(local.globalX[0], local.globalX[1]),
       globalY: sketch.random(local.globalY[0], local.globalY[1]),
     };
+
+    // Log the values with a descriptive message
+    console.log(`Random values for mode '${mode}':`, values);
+
+    return values;
   }
 
   const ranges = {
     light: {
-      x: [10, 50],
-      y: [10, 50],
-      globalX: [50, 300],
-      globalY: [50, 300],
+      x: [30, 50],
+      y: [30, 50],
+      globalX: [70, 300],
+      globalY: [70, 300],
     },
     mid: {
       //good!
@@ -45,6 +77,12 @@ new p5((sketch) => {
       globalX: [400, 550],
       globalY: [400, 550],
     },
+    midweird: {
+      x: [350, 600],
+      y: [100, 300],
+      globalX: [400, 550],
+      globalY: [150, 550],
+    },
     hard: {
       x: [300, 450],
       y: [300, 450],
@@ -58,7 +96,8 @@ new p5((sketch) => {
     { name: "random range light", ...getRandomValues("light", sketch) },
     { name: "random range mid", ...getRandomValues("mid", sketch) },
     { name: "random range mid plus", ...getRandomValues("midplus", sketch) },
-    { name: "random range hard", ...getRandomValues("hard", sketch) },
+    { name: "random range mid weird", ...getRandomValues("midweird", sketch) },
+    /* { name: "random range hard", ...getRandomValues("hard", sketch) },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
 
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
@@ -66,7 +105,7 @@ new p5((sketch) => {
     { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
     { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
-    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
+    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },*/
   ];
 
   let palettes = {
@@ -82,17 +121,17 @@ new p5((sketch) => {
       { r: 87, g: 183, b: 171 },
       { r: 236, g: 101, b: 59 },
     ],
-    tokyo: [
-      { r: 64, g: 224, b: 208 }, // Neon blue
-      { r: 255, g: 20, b: 147 }, // Electric pink
-      { r: 255, g: 215, b: 0 }, // Billboard yellow
-      { r: 255, g: 69, b: 0 }, // Traffic light red
+    fidenza: [
+      { r: 209, g: 42, b: 47 },
+      { r: 252, g: 188, b: 24 },
+      { r: 235, g: 228, b: 216 },
+      { r: 183, g: 217, b: 205 },
     ],
-    rainbow: [
-      { r: 255, g: 0, b: 0 }, // Vibrant red
-      { r: 255, g: 165, b: 0 }, // Electric orange
-      { r: 255, g: 255, b: 0 }, // Bright yellow
-      { r: 0, g: 128, b: 0 }, // Green fields
+    ducci_a: [
+      { r: 235, g: 222, b: 197 },
+      { r: 0, g: 0, b: 0 },
+      { r: 211, g: 154, b: 14 },
+      { r: 128, g: 149, b: 153 },
     ],
     sunflower: [
       { r: 255, g: 204, b: 0 }, // Sunflower yellow
@@ -117,6 +156,12 @@ new p5((sketch) => {
       { r: 255, g: 0, b: 84 },
       { r: 255, g: 84, b: 0 },
       { r: 255, g: 189, b: 0 },
+    ],
+    retroFuture: [
+      { r: 23, g: 43, b: 61 },
+      { r: 89, g: 173, b: 235 },
+      { r: 245, g: 215, b: 189 },
+      { r: 234, g: 62, b: 64 },
     ],
   };
 
@@ -144,8 +189,8 @@ new p5((sketch) => {
     sketch.noStroke();
     updateTIncrement(); // Initial random increment
 
-    for (let x = 0; x <= sketch.width; x += 32) {
-      for (let y = 0; y <= sketch.height; y += 32) {
+    for (let x = 0; x <= sketch.width; x += particleSpacing) {
+      for (let y = 0; y <= sketch.height; y += particleSpacing) {
         let colorIndex = getColorIndex(x, y, sketch);
         particleData.push({ x, y, colorIndex });
       }
@@ -157,6 +202,7 @@ new p5((sketch) => {
       "XY value set": currentXYset.name,
       "color mode": colorMode,
       "t =": tIncrement.toFixed(4),
+      "particle spacing": particleSpacingMode,
     });
   };
 
@@ -222,6 +268,15 @@ new p5((sketch) => {
       case "star":
         drawStar(x, y, size, p);
         break;
+      case "zigzag":
+        drawZigzag(x, y, size, color, p);
+        break;
+      case "cross":
+        drawCross(x, y, size, color, p);
+        break;
+      case "angled line":
+        drawAngledLine(x, y, size, color, p);
+        break;
     }
   }
 
@@ -259,5 +314,23 @@ new p5((sketch) => {
       p.vertex(sx, sy);
     }
     p.endShape(p.CLOSE);
+  }
+
+  function drawAngledLine(x, y, size, color, p) {
+    p.stroke(color.r, color.g, color.b);
+    p.strokeWeight(2); // You can adjust the stroke weight as needed
+    let angle = p.PI / 4; // 45 degrees, but you can set any angle you like
+    let xOffset = size * p.cos(angle);
+    let yOffset = size * p.sin(angle);
+    p.line(x - xOffset, y - yOffset, x + xOffset, y + yOffset);
+    p.noStroke();
+  }
+
+  function drawCross(x, y, size, color, p) {
+    p.stroke(color.r, color.g, color.b);
+    p.strokeWeight(2); // Consistent with other shapes
+    p.line(x - size / 2, y, x + size / 2, y); // Horizontal line
+    p.line(x, y - size / 2, x, y + size / 2); // Vertical line
+    p.noStroke();
   }
 });
