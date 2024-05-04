@@ -89,6 +89,12 @@ new p5((sketch) => {
       globalX: [450, 600],
       globalY: [450, 600],
     },
+    chaos: {
+      x: [0, 1000],
+      y: [0, 1000],
+      globalX: [0, 1000],
+      globalY: [0, 1000],
+    },
   };
 
   // Placeholder for XY value sets and palettes
@@ -97,7 +103,8 @@ new p5((sketch) => {
     { name: "random range mid", ...getRandomValues("mid", sketch) },
     { name: "random range mid plus", ...getRandomValues("midplus", sketch) },
     { name: "random range mid weird", ...getRandomValues("midweird", sketch) },
-    /* { name: "random range hard", ...getRandomValues("hard", sketch) },
+    { name: "random range chaos", ...getRandomValues("chaos", sketch) },
+    { name: "random range hard", ...getRandomValues("hard", sketch) },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
 
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
@@ -105,27 +112,27 @@ new p5((sketch) => {
     { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
     { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
-    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },*/
+    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
 
   let palettes = {
     jungle: [
+      { r: 153, g: 50, b: 204 }, // Orchid purple
       { r: 34, g: 139, b: 34 }, // Deep jungle green
       { r: 0, g: 153, b: 204 }, // Parrot feather blue
-      { r: 153, g: 50, b: 204 }, // Orchid purple
       { r: 255, g: 140, b: 0 }, // Tropical sunset orange
     ],
     golid4ever: [
-      { r: 31, g: 60, b: 67 },
-      { r: 248, g: 203, b: 87 },
       { r: 87, g: 183, b: 171 },
       { r: 236, g: 101, b: 59 },
+      { r: 31, g: 60, b: 67 },
+      { r: 248, g: 203, b: 87 },
     ],
     fidenza: [
-      { r: 209, g: 42, b: 47 },
-      { r: 252, g: 188, b: 24 },
       { r: 235, g: 228, b: 216 },
       { r: 183, g: 217, b: 205 },
+      { r: 209, g: 42, b: 47 },
+      { r: 252, g: 188, b: 24 },
     ],
     ducci_a: [
       { r: 235, g: 222, b: 197 },
