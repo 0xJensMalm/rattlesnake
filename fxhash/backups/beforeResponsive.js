@@ -1,5 +1,5 @@
 new p5((sketch) => {
-  const aspectRatio = 1000 / 600; // Original aspect ratio (e.g., 1000x600)
+  const aspectRatio = 1000 / 1000; // Original aspect ratio (e.g., 1000x600)
   let canvasWidth, canvasHeight;
 
   // Seeding for consistent randomness
@@ -11,13 +11,13 @@ new p5((sketch) => {
   let t = 0;
   let tIncrement = 0.0005;
   let globalX, globalY;
-  let particleSize = 15;
+  let particleSize = 18;
 
   let spacingModes = {
     regular: 32,
-    dense: 30,
-    densePlus: 28,
-    extreme: 24,
+    dense: 28,
+    densePlus: 24,
+    extreme: 18,
   };
 
   // Shape and color mode configurations
@@ -30,13 +30,7 @@ new p5((sketch) => {
     "angled line",
     "cross",
   ];
-  let colorModes = [
-    "checkerboard",
-    "diagonal lines",
-    "vertical",
-    "horizontal stripes",
-    "grid lines",
-  ];
+  let colorModes = ["checkerboard", "diagonal lines", "vertical"];
 
   function setParticleSpacing() {
     const keys = Object.keys(spacingModes);
@@ -67,10 +61,10 @@ new p5((sketch) => {
 
   const ranges = {
     light: {
-      x: [30, 100],
-      y: [30, 100],
-      globalX: [70, 500],
-      globalY: [70, 500],
+      x: [30, 50],
+      y: [30, 50],
+      globalX: [70, 300],
+      globalY: [70, 300],
     },
     mid: {
       //good!
@@ -114,11 +108,11 @@ new p5((sketch) => {
     { name: "random range chaos", ...getRandomValues("chaos", sketch) },
     { name: "random range hard", ...getRandomValues("hard", sketch) },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
-    { name: "hardRain", x: 7, y: 591, globalX: 343, globalY: 368 },
 
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
     { name: "z=g", x: 400, y: 500, globalX: 20, globalY: 20 },
-    { name: "init", x: 20, y: 200, globalX: 200, globalY: 500 },
+    { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
+    { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
     { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
@@ -142,11 +136,11 @@ new p5((sketch) => {
       { r: 209, g: 42, b: 47 },
       { r: 252, g: 188, b: 24 },
     ],
-    sunChaser: [
-      { r: 62, g: 156, b: 191 },
-      { r: 242, g: 196, b: 61 },
-      { r: 167, g: 236, b: 242 },
-      { r: 241, g: 124, b: 55 },
+    ducci_a: [
+      { r: 235, g: 222, b: 197 },
+      { r: 0, g: 0, b: 0 },
+      { r: 211, g: 154, b: 14 },
+      { r: 128, g: 149, b: 153 },
     ],
     sunflower: [
       { r: 255, g: 204, b: 0 }, // Sunflower yellow
@@ -281,38 +275,19 @@ new p5((sketch) => {
   };
 
   function getColorIndex(x, y, p) {
-    switch (colorMode) {
-      case "checkerboard":
-        return (
-          ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
-          (currentPalette.length - 1)
-        );
-      case "diagonal lines":
-        return Math.floor((x + y) / 32) % currentPalette.length;
-      case "vertical":
-        return Math.floor(x / 32) % currentPalette.length;
-      case "horizontal stripes":
-        return horizontalStripes(x, y, p);
-      case "grid lines":
-        return gridLines(x, y, p);
-      default:
-        return 0; // Default to first color if mode is undefined
+    if (colorMode === "checkerboard") {
+      // Alternates color based on whether the sum of the indices of the grid cell is odd or even
+      return (
+        ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
+        (currentPalette.length - 1)
+      );
+    } else if (colorMode === "diagonal lines") {
+      // Creates diagonal lines by checking the modulo of the sum of the coordinates
+      return Math.floor((x + y) / 32) % currentPalette.length;
+    } else if (colorMode === "vertical") {
+      // Consistently apply the same color for vertical
+      return Math.floor(x / 32) % currentPalette.length;
     }
-  }
-
-  function horizontalStripes(x, y, p) {
-    let numStripes = 10; // Adjust the number of horizontal stripes
-    let stripeHeight = p.height / numStripes;
-    return Math.floor(y / stripeHeight) % currentPalette.length;
-  }
-
-  function gridLines(x, y, p) {
-    let gridSize = 50; // Control the size of the grid squares
-    // Alternating grid pattern based on both x and y positions
-    return (
-      ((Math.floor(x / gridSize) + Math.floor(y / gridSize)) % 2) *
-      (currentPalette.length - 1)
-    );
   }
 
   function getAngle(x, y, gx, gy, p) {

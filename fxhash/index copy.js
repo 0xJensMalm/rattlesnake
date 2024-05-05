@@ -1,5 +1,5 @@
 new p5((sketch) => {
-  const aspectRatio = 1000 / 600; // Original aspect ratio (e.g., 1000x600)
+  const aspectRatio = 1 / 1; // Original aspect ratio (e.g., 1000x600)
   let canvasWidth, canvasHeight;
 
   // Seeding for consistent randomness
@@ -11,43 +11,71 @@ new p5((sketch) => {
   let t = 0;
   let tIncrement = 0.0005;
   let globalX, globalY;
-  let particleSize = 15;
+  let particleSize = 16;
 
   let spacingModes = {
-    regular: 32,
-    dense: 30,
-    densePlus: 28,
-    extreme: 24,
+    regular: { spacing: 32, weight: 4 },
+    dense: { spacing: 28, weight: 3 },
+    densePlus: { spacing: 24, weight: 2 },
+    extreme: { spacing: 18, weight: 1 },
   };
-
   // Shape and color mode configurations
   let shapeModes = [
-    "ellipse",
-    "rectangle",
-    "triangle",
-    "line",
-    "star",
-    "angled line",
-    "cross",
-  ];
-  let colorModes = [
-    "checkerboard",
-    "diagonal lines",
-    "vertical",
-    "horizontal stripes",
-    "grid lines",
+    { shape: "ellipse", weight: 3 },
+    { shape: "rectangle", weight: 3 },
+    { shape: "triangle", weight: 2 },
+    { shape: "line", weight: 4 },
+    { shape: "star", weight: 1 },
+    { shape: "ghost line", weight: 2 },
+    { shape: "cross", weight: 2 },
   ];
 
-  function setParticleSpacing() {
-    const keys = Object.keys(spacingModes);
-    const selectedKey = keys[sketch.floor(sketch.random(keys.length))];
-    return {
-      mode: selectedKey,
-      spacing: spacingModes[selectedKey],
-    };
-  }
+  let weightedShapeModes = createWeightedList(shapeModes);
+  let weightedSpacingModes = createWeightedList(spacingModes);
+
+  // Random selections
+  let currentXYset =
+    myXYvalueSets[sketch.floor(sketch.random(myXYvalueSets.length))];
+  let shapeMode =
+    weightedShapeModes[
+      sketch.floor(sketch.random() * weightedShapeModes.length)
+    ];
   let { mode: particleSpacingMode, spacing: particleSpacing } =
     setParticleSpacing();
+  let colorMode = colorModes[sketch.floor(sketch.random() * colorModes.length)];
+  let currentPaletteName = sketch.random(Object.keys(palettes));
+  let currentPalette = palettes[currentPaletteName];
+
+  function createWeightedList(modes) {
+    let weightedList = [];
+    if (Array.isArray(modes)) {
+      modes.forEach((item) => {
+        for (let i = 0; i < item.weight; i++) {
+          weightedList.push(item.shape);
+        }
+      });
+    } else {
+      Object.entries(modes).forEach(([mode, details]) => {
+        for (let i = 0; i < details.weight; i++) {
+          weightedList.push({ mode: mode, spacing: details.spacing });
+        }
+      });
+    }
+    console.log("WeightedList:", weightedList);
+    return weightedList;
+  }
+
+  function setParticleSpacing() {
+    let selected =
+      weightedSpacingModes[
+        sketch.floor(sketch.random() * weightedSpacingModes.length)
+      ];
+    console.log("Selected Spacing Mode:", selected);
+    return {
+      mode: selected.mode,
+      spacing: selected.spacing,
+    };
+  }
 
   function getRandomValues(mode, sketch) {
     const local = ranges[mode];
@@ -67,10 +95,10 @@ new p5((sketch) => {
 
   const ranges = {
     light: {
-      x: [30, 100],
-      y: [30, 100],
-      globalX: [70, 500],
-      globalY: [70, 500],
+      x: [30, 50],
+      y: [30, 50],
+      globalX: [70, 300],
+      globalY: [70, 300],
     },
     mid: {
       //good!
@@ -107,18 +135,18 @@ new p5((sketch) => {
 
   // Placeholder for XY value sets and palettes
   let myXYvalueSets = [
-    { name: "random range light", ...getRandomValues("light", sketch) },
-    { name: "random range mid", ...getRandomValues("mid", sketch) },
-    { name: "random range mid plus", ...getRandomValues("midplus", sketch) },
-    { name: "random range mid weird", ...getRandomValues("midweird", sketch) },
-    { name: "random range chaos", ...getRandomValues("chaos", sketch) },
-    { name: "random range hard", ...getRandomValues("hard", sketch) },
+    { name: "random range: light", ...getRandomValues("light", sketch) },
+    { name: "random range: mid", ...getRandomValues("mid", sketch) },
+    { name: "random range: mid plus", ...getRandomValues("midplus", sketch) },
+    { name: "random range: mid weird", ...getRandomValues("midweird", sketch) },
+    { name: "random range: chaos", ...getRandomValues("chaos", sketch) },
+    { name: "random range: hard", ...getRandomValues("hard", sketch) },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
-    { name: "hardRain", x: 7, y: 591, globalX: 343, globalY: 368 },
 
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
     { name: "z=g", x: 400, y: 500, globalX: 20, globalY: 20 },
-    { name: "init", x: 20, y: 200, globalX: 200, globalY: 500 },
+    { name: "init", x: 90, y: 40, globalX: 500, globalY: 230 },
+    { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
     { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
     { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
@@ -142,11 +170,12 @@ new p5((sketch) => {
       { r: 209, g: 42, b: 47 },
       { r: 252, g: 188, b: 24 },
     ],
-    sunChaser: [
-      { r: 62, g: 156, b: 191 },
-      { r: 242, g: 196, b: 61 },
-      { r: 167, g: 236, b: 242 },
-      { r: 241, g: 124, b: 55 },
+    ducci_a: [
+      { r: 211, g: 154, b: 14 },
+      { r: 235, g: 222, b: 197 },
+      { r: 0, g: 0, b: 0 },
+
+      { r: 128, g: 149, b: 153 },
     ],
     sunflower: [
       { r: 255, g: 204, b: 0 }, // Sunflower yellow
@@ -162,7 +191,7 @@ new p5((sketch) => {
     ],
     angelic: [
       { r: 255, g: 255, b: 255 },
-      { r: 255, g: 255, b: 255 },
+      { r: 0, g: 0, b: 0 },
       { r: 255, g: 255, b: 255 },
       { r: 255, g: 255, b: 255 },
     ],
@@ -180,24 +209,22 @@ new p5((sketch) => {
     ],
   };
 
-  // Select initial configurations randomly
-
-  let currentXYsetIndex = sketch.floor(sketch.random(myXYvalueSets.length));
-  let currentXYset = myXYvalueSets[currentXYsetIndex];
-  let shapeMode = shapeModes[sketch.floor($fx.rand() * shapeModes.length)];
-  let colorMode = colorModes[sketch.floor($fx.rand() * colorModes.length)];
-  let currentPalette = palettes[sketch.floor($fx.rand() * palettes.length)];
-  let particleData = [];
-
-  currentPaletteName = sketch.random(Object.keys(palettes));
-  currentPalette = palettes[currentPaletteName];
-
   function updateTIncrement() {
     tIncrement = sketch.random(0.0001, 0.0003);
     $fx.features({
       "t Increment": tIncrement.toFixed(4),
     });
   }
+
+  // Select initial configurations randomly
+
+  let particleData = [];
+
+  let colorModes = ["checkerboard", "diagonal lines", "vertical"];
+  setParticleSpacing();
+
+  currentPaletteName = sketch.random(Object.keys(palettes));
+  currentPalette = palettes[currentPaletteName];
 
   sketch.setup = () => {
     updateCanvasSize(); // Set initial canvas size
@@ -281,38 +308,19 @@ new p5((sketch) => {
   };
 
   function getColorIndex(x, y, p) {
-    switch (colorMode) {
-      case "checkerboard":
-        return (
-          ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
-          (currentPalette.length - 1)
-        );
-      case "diagonal lines":
-        return Math.floor((x + y) / 32) % currentPalette.length;
-      case "vertical":
-        return Math.floor(x / 32) % currentPalette.length;
-      case "horizontal stripes":
-        return horizontalStripes(x, y, p);
-      case "grid lines":
-        return gridLines(x, y, p);
-      default:
-        return 0; // Default to first color if mode is undefined
+    if (colorMode === "checkerboard") {
+      // Alternates color based on whether the sum of the indices of the grid cell is odd or even
+      return (
+        ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
+        (currentPalette.length - 1)
+      );
+    } else if (colorMode === "diagonal lines") {
+      // Creates diagonal lines by checking the modulo of the sum of the coordinates
+      return Math.floor((x + y) / 32) % currentPalette.length;
+    } else if (colorMode === "vertical") {
+      // Consistently apply the same color for vertical
+      return Math.floor(x / 32) % currentPalette.length;
     }
-  }
-
-  function horizontalStripes(x, y, p) {
-    let numStripes = 10; // Adjust the number of horizontal stripes
-    let stripeHeight = p.height / numStripes;
-    return Math.floor(y / stripeHeight) % currentPalette.length;
-  }
-
-  function gridLines(x, y, p) {
-    let gridSize = 50; // Control the size of the grid squares
-    // Alternating grid pattern based on both x and y positions
-    return (
-      ((Math.floor(x / gridSize) + Math.floor(y / gridSize)) % 2) *
-      (currentPalette.length - 1)
-    );
   }
 
   function getAngle(x, y, gx, gy, p) {
@@ -344,8 +352,8 @@ new p5((sketch) => {
       case "cross":
         drawCross(x, y, size, color, p);
         break;
-      case "angled line":
-        drawAngledLine(x, y, size, color, p);
+      case "ghost line":
+        drawGhostLine(x, y, size, color, p);
         break;
     }
   }
@@ -386,7 +394,7 @@ new p5((sketch) => {
     p.endShape(p.CLOSE);
   }
 
-  function drawAngledLine(x, y, size, color, p) {
+  function drawGhostLine(x, y, size, color, p) {
     p.stroke(color.r, color.g, color.b);
     p.strokeWeight(2); // You can adjust the stroke weight as needed
     let angle = p.PI / 4; // 45 degrees, but you can set any angle you like
