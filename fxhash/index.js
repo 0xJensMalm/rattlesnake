@@ -12,7 +12,6 @@ new p5((sketch) => {
   let tIncrement = 0.0005;
   let globalX, globalY;
   let particleSize = 15;
-  let trailAlpha = 6 + $fx.rand() * 12;
 
   let spacingModes = [
     { mode: "regular", spacing: 32, weight: 60 },
@@ -156,7 +155,7 @@ new p5((sketch) => {
       { r: 255, g: 255, b: 255 },
       { r: 255, g: 255, b: 255 },
     ],
-    vibraSun: [
+    vibrachrome: [
       { r: 57, g: 0, b: 153 },
       { r: 255, g: 0, b: 84 },
       { r: 255, g: 84, b: 0 },
@@ -168,11 +167,23 @@ new p5((sketch) => {
       { r: 100, g: 252, b: 201 },
       { r: 5, g: 215, b: 224 },
     ],
-    mint: [
-      { r: 248, g: 182, b: 45 },
-      { r: 227, g: 255, b: 63 },
-      { r: 100, g: 252, b: 201 },
-      { r: 5, g: 215, b: 224 },
+    bioluminescent: [
+      { r: 5, g: 10, b: 30 }, // Deep sea black
+      { r: 247, g: 12, b: 190 }, // Jellyfish pink
+      { r: 3, g: 252, b: 236 }, // Neon blue
+      { r: 20, g: 239, b: 20 }, // Glowing green
+    ],
+    amiga: [
+      { r: 0, g: 135, b: 189 }, // Electric blue
+      { r: 255, g: 0, b: 255 }, // Hot magenta
+      { r: 0, g: 255, b: 0 }, // Neon green
+      { r: 255, g: 255, b: 0 }, // Bright yellow
+    ],
+    sunGod: [
+      { r: 227, g: 178, b: 0 }, // Sun gold
+      { r: 191, g: 87, b: 0 }, // Terra cotta
+      { r: 255, g: 245, b: 220 }, // Llama wool white
+      { r: 153, g: 27, b: 7 }, // Inca red
     ],
   };
 
@@ -251,12 +262,11 @@ new p5((sketch) => {
       "color mode": colorMode,
       "t =": tIncrement.toFixed(4),
       "particle spacing": particleSpacingMode,
-      "trail alpha": `${trailAlpha.toFixed(1)}`,
     });
   };
 
   sketch.draw = () => {
-    sketch.background(10, 10, 10, trailAlpha);
+    sketch.background(15, 10); // Set background to slightly dark to show particle trails
 
     // Increment time based on the current tIncrement value
     t += tIncrement;
