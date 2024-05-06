@@ -1,300 +1,444 @@
-let t = 0; // time variable
-let globalX = 200; // initially replacing mouseX
-let globalY = 200; // initially replacing mouseY
+new p5((sketch) => {
+  const originalWidth = 1200;
+  const originalHeight = 1000;
+  const aspectRatio = originalWidth / originalHeight;
 
-let particleSize = 20;
+  // Seeding for consistent randomness
+  let seedValue = sketch.int($fx.rand() * 100000);
+  sketch.randomSeed(seedValue);
+  sketch.noiseSeed(seedValue);
 
-let myXvalue = 20;
-let myYvalue = 10;
+  // Initial values aligned with the old sketch
+  let t = 0;
+  let tIncrement = 0.0005;
+  let globalX, globalY;
+  let particleSize = 16;
 
-let myXYvalueSets = [
-  { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
-  { name: "slotMachine", x: 400, y: 30, globalX: 500, globalY: 0 },
-  { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
-  { name: "zigBrush", x: 400, y: 500, globalX: 20, globalY: 20 },
-  { name: "init", x: 20, y: 10, globalX: 200, globalY: 200 },
-  { name: "hardSwing", x: 400, y: 30, globalX: 200, globalY: 200 },
-  { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
-  { name: "schoolOfSnakes", x: 150, y: 400, globalX: 200, globalY: 200 },
-];
-let currentXYsetIndex = 0;
-let currentXYset = myXYvalueSets[currentXYsetIndex];
+  let spacingModes = [
+    { mode: "regular", spacing: 32, weight: 60 },
+    { mode: "dense", spacing: 30, weight: 30 },
+    { mode: "densePlus", spacing: 28, weight: 15 },
+    { mode: "extreme", spacing: 24, weight: 2 },
+  ];
 
-let sequence = false; // Enable/disable sequence-based offsets
-let sequenceSpeed = 2;
-let lastUpdateTime = 0;
+  let shapeModes = [
+    { shape: "ellipse", weight: 20 },
+    { shape: "rectangle", weight: 20 },
+    { shape: "triangle", weight: 20 },
+    { shape: "line", weight: 30 },
+    { shape: "star", weight: 2 },
+    { shape: "ghost line", weight: 6 },
+    { shape: "cross", weight: 6 },
+  ];
 
-const intervals = [
-  { x: 0, y: 0 },
-  { x: 15, y: 10 },
-  { x: 30, y: 20 },
-  { x: 45, y: 30 },
-];
-let valueSets = [];
+  let colorModes = [
+    { mode: "checkerboard", weight: 10 },
+    { mode: "diagonal line", weight: 25 },
+    { mode: "vertical", weight: 30 },
+    { mode: "horizontal stripes", weight: 20 },
+    { mode: "grid line", weight: 10 },
+  ];
 
-let currentSet = { x: myXvalue, y: myYvalue };
+  const ranges = {
+    light: {
+      x: [30, 100],
+      y: [30, 100],
+      globalX: [70, 500],
+      globalY: [70, 500],
+    },
+    z: {
+      //good!
+      x: [150, 300],
+      y: [150, 300],
+      globalX: [300, 450],
+      globalY: [300, 450],
+    },
+    x: {
+      x: [250, 500],
+      y: [250, 500],
+      globalX: [400, 550],
+      globalY: [400, 550],
+    },
+    y: {
+      x: [300, 450],
+      y: [300, 450],
+      globalX: [450, 600],
+      globalY: [450, 600],
+    },
+    $: {
+      x: [10, 200],
+      y: [500, 700],
+      globalX: [300, 400],
+      globalY: [300, 400],
+    },
+    c: {
+      x: [20, 150],
+      y: [800, 950],
+      globalX: [300, 500],
+      globalY: [30, 70],
+    },
+    chaos: {
+      x: [0, 1000],
+      y: [0, 1000],
+      globalX: [0, 1000],
+      globalY: [0, 1000],
+    },
+  };
 
-// Define multiple color palettes
-let currentPaletteIndex = 0; // Index to keep track of the current palette
-let palettes = [
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 128, g: 100, b: 0 }, // Dark Gold
-    { r: 255, g: 215, b: 0 }, // Gold
-    { r: 255, g: 223, b: 0 }, // Light Gold
-  ],
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 0, g: 0, b: 128 }, // Dark Blue
-    { r: 0, g: 0, b: 255 }, // Medium Blue
-    { r: 173, g: 216, b: 230 }, // Light Blue
-  ],
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 0, g: 100, b: 0 }, // Dark Green
-    { r: 0, g: 128, b: 0 }, // Medium Green
-    { r: 144, g: 238, b: 144 }, // Light Green
-  ],
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 75, g: 0, b: 130 }, // Dark Purple
-    { r: 138, g: 43, b: 226 }, // Medium Purple
-    { r: 216, g: 191, b: 216 }, // Light Purple
-  ],
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 255, g: 140, b: 0 }, // Dark Orange
-    { r: 255, g: 165, b: 0 }, // Medium Orange
-    { r: 255, g: 222, b: 173 }, // Light Orange
-  ],
-  // Vibrant Neon Palette
-  [
-    { r: 255, g: 0, b: 255 }, // Neon Pink
-    { r: 0, g: 255, b: 255 }, // Neon Cyan
-    { r: 255, g: 255, b: 0 }, // Neon Yellow
-    { r: 0, g: 255, b: 0 }, // Neon Green
-  ],
-  // Cool Mint and Teal Palette
-  [
-    { r: 242, g: 242, b: 242 }, // Soft White
-    { r: 169, g: 239, b: 223 }, // Mint
-    { r: 22, g: 160, b: 133 }, // Teal
-    { r: 13, g: 102, b: 85 }, // Dark Teal
-  ],
-  // Minimalistic Black and White
-  [
-    { r: 0, g: 0, b: 0 }, // Black
-    { r: 128, g: 128, b: 128 }, // Gray
-    { r: 192, g: 192, b: 192 }, // Light Gray
-    { r: 255, g: 255, b: 255 }, // White
-  ],
-  // Sunset Palette
-  [
-    { r: 76, g: 0, b: 153 }, // Deep Purple
-    { r: 204, g: 0, b: 0 }, // Red
-    { r: 255, g: 140, b: 0 }, // Dark Orange
-    { r: 255, g: 237, b: 188 }, // Peach
-  ],
-  // Earthy Tones Palette
-  [
-    { r: 46, g: 46, b: 31 }, // Dark Olive
-    { r: 102, g: 71, b: 54 }, // Sienna
-    { r: 204, g: 187, b: 153 }, // Tan
-    { r: 238, g: 238, b: 187 }, // Pale Yellow
-  ],
-];
+  let myXYvalueSets = [
+    {
+      name: "random-range light",
+      weight: 10,
+      values: getLazyRandomValues("light"),
+    },
+    {
+      name: "random-range z",
+      weight: 30,
+      values: getLazyRandomValues("z"),
+    },
+    {
+      name: "random-range x",
+      weight: 20,
+      values: getLazyRandomValues("x"),
+    },
+    {
+      name: "random-range $",
+      weight: 30,
+      values: getLazyRandomValues("$"),
+    },
 
-let currentPalette = palettes[0]; // Start with the first palette
+    {
+      name: "random-range chaos",
+      weight: 10,
+      values: getLazyRandomValues("chaos"),
+    },
+    {
+      name: "random-range y",
+      weight: 15,
+      values: getLazyRandomValues("y"),
+    },
+    {
+      name: "random-range c",
+      weight: 10,
+      values: getLazyRandomValues("c"),
+    },
+    // Keep these as they are, no dynamic values needed
+    { name: "f=y", weight: 3, x: 400, y: 0, globalX: 1000, globalY: 0 },
+    { name: "hardRain", weight: 10, x: 7, y: 591, globalX: 343, globalY: 368 },
+    { name: "gX.gY=0", weight: 2, x: 400, y: 30, globalX: 0, globalY: 0 },
+    { name: "z=g", weight: 2, x: 400, y: 500, globalX: 20, globalY: 20 },
+    { name: "flight", weight: 8, x: 500, y: 600, globalX: 200, globalY: 200 },
+    { name: "snakes", weight: 8, x: 150, y: 400, globalX: 200, globalY: 200 },
+  ];
 
-let shapeModes = ["ellipse", "rectangle", "triangle", "line", "star"];
-let shapeModeIndex = 0; // Start with the first shape mode in the array
-let shapeMode = shapeModes[shapeModeIndex];
-let colorMode = "each line"; // Default color mode
-let randomColors = []; // Array to store random colors for each position
+  let palettes = {
+    blackGold: [
+      { r: 0, g: 0, b: 0 }, // Black
+      { r: 255, g: 215, b: 0 }, // Golden yellow
+      { r: 255, g: 193, b: 7 }, // Vibrant gold
+      { r: 255, g: 127, b: 0 }, // Orange-gold
+    ],
+    breeze: [
+      { r: 174, g: 214, b: 241 }, // Pale sky blue
+      { r: 120, g: 190, b: 209 }, // Blue grey
+      { r: 35, g: 123, b: 156 }, // Denim blue
+      { r: 244, g: 246, b: 247 }, // Off-white
+    ],
 
-function setup() {
-  createCanvas(1000, 600);
-  noStroke();
-  // Initialize random colors
-  for (let x = 0; x <= width; x += 32) {
-    randomColors[x] = [];
-    for (let y = 0; y <= height; y += 32) {
-      randomColors[x][y] = floor(random(currentPalette.length));
-    }
+    tropic: [
+      { r: 7, g: 144, b: 77 }, // Jade green
+      { r: 254, g: 199, b: 91 }, // Mango yellow
+      { r: 247, g: 121, b: 50 }, // Coral red
+      { r: 255, g: 255, b: 255 }, // Pure white
+    ],
+    fidenza: [
+      { r: 235, g: 228, b: 216 },
+      { r: 183, g: 217, b: 205 },
+      { r: 209, g: 42, b: 47 },
+      { r: 252, g: 188, b: 24 },
+    ],
+    sunChaser: [
+      { r: 62, g: 156, b: 191 },
+      { r: 242, g: 196, b: 61 },
+      { r: 167, g: 236, b: 242 },
+      { r: 241, g: 124, b: 55 },
+    ],
+    sunflower: [
+      { r: 255, g: 204, b: 0 }, // Sunflower yellow
+      { r: 101, g: 67, b: 33 }, // Dark seed brown
+      { r: 135, g: 206, b: 235 }, // Sky blue
+      { r: 124, g: 252, b: 0 }, // Leaf green
+    ],
+    angelic: [
+      { r: 255, g: 255, b: 255 },
+      { r: 255, g: 255, b: 255 },
+      { r: 255, g: 255, b: 255 },
+      { r: 255, g: 255, b: 255 },
+    ],
+    vibrachrome: [
+      { r: 57, g: 0, b: 153 },
+      { r: 255, g: 0, b: 84 },
+      { r: 255, g: 84, b: 0 },
+      { r: 255, g: 189, b: 0 },
+    ],
+    mint: [
+      { r: 248, g: 182, b: 45 },
+      { r: 227, g: 255, b: 63 },
+      { r: 100, g: 252, b: 201 },
+      { r: 5, g: 215, b: 224 },
+    ],
+    bioluminescent: [
+      { r: 5, g: 10, b: 30 }, // Deep sea black
+      { r: 247, g: 12, b: 190 }, // Jellyfish pink
+      { r: 3, g: 252, b: 236 }, // Neon blue
+      { r: 20, g: 239, b: 20 }, // Glowing green
+    ],
+    sunGod: [
+      { r: 227, g: 178, b: 0 }, // Sun gold
+      { r: 191, g: 87, b: 0 }, // Terra cotta
+      { r: 255, g: 245, b: 220 }, // Llama wool white
+      { r: 153, g: 27, b: 7 }, // Inca red
+    ],
+  };
+
+  // Select initial configurations randomly
+  let { mode: particleSpacingMode, spacing: particleSpacing } =
+    weightedRandom(spacingModes);
+  let shapeMode = weightedRandom(shapeModes).shape;
+  let colorMode = weightedRandom(colorModes).mode;
+  let currentPalette = palettes[sketch.floor($fx.rand() * palettes.length)];
+  let particleData = [];
+  let currentXYset = weightedRandom(myXYvalueSets);
+  if (currentXYset.values) {
+    currentXYset = { ...currentXYset, ...currentXYset.values() };
   }
-  updateValueSets();
-}
 
-function draw() {
-  background(10, 10); // Translucent background to create trails
+  currentPaletteName = sketch.random(Object.keys(palettes));
+  currentPalette = palettes[currentPaletteName];
 
-  let currentTime = millis(); // Get the current time in milliseconds
+  function weightedRandom(items) {
+    let totalWeight = items.reduce((total, item) => total + item.weight, 0);
+    let choice = $fx.rand() * totalWeight;
+    let sum = 0;
 
-  // Check if it's time to update the sequence based on sequenceSpeed
-  if (sequence && currentTime - lastUpdateTime > sequenceSpeed) {
-    updateSequenceValues();
-    lastUpdateTime = currentTime; // Reset the last update time
-  }
-
-  // Update globalX and globalY from the current set
-  globalX = currentXYset.globalX;
-  globalY = currentXYset.globalY;
-
-  for (let x = 0; x <= width; x += 32) {
-    let currentColor; // To hold the color for each line or particle
-
-    if (colorMode === "each line") {
-      // Each line has one color, pick color based on x position
-      currentColor = currentPalette[(x / 32) % currentPalette.length];
-    }
-
-    for (let y = 0; y <= height; y += 32) {
-      if (colorMode === "random") {
-        // Use preassigned random color for stability
-        currentColor = currentPalette[randomColors[x][y]];
-      } else if (colorMode === "noise") {
-        // Noise-based color selection
-        let noiseVal = noise(x * 0.5, y * 0.05, t);
-        currentColor =
-          currentPalette[
-            floor(noiseVal * currentPalette.length) % currentPalette.length
-          ];
+    for (let item of items) {
+      sum += item.weight;
+      if (sum > choice) {
+        return item;
       }
+    }
+  }
 
-      fill(currentColor.r, currentColor.g, currentColor.b);
+  function getLazyRandomValues(mode) {
+    return () => {
+      const local = ranges[mode];
+      const values = {
+        x: local.x[0] + $fx.rand() * (local.x[1] - local.x[0]),
+        y: local.y[0] + $fx.rand() * (local.y[1] - local.y[0]),
+        globalX:
+          local.globalX[0] + $fx.rand() * (local.globalX[1] - local.globalX[0]),
+        globalY:
+          local.globalY[0] + $fx.rand() * (local.globalY[1] - local.globalY[0]),
+      };
+      console.log(`Random values for mode '${mode}':`, values);
+      return values;
+    };
+  }
 
-      const xAngle = map(globalX, 0, width, 0, TWO_PI, true);
-      const yAngle = map(globalY, 0, height, 0, TWO_PI, true);
-      const angle = xAngle * (x / width) + yAngle * (y / height);
+  function updateTIncrement() {
+    tIncrement = sketch.random(0.0001, 0.0002);
+    $fx.features({
+      "t Increment": tIncrement.toFixed(4),
+    });
+  }
 
-      const myX =
-        x +
-        (sequence ? currentSet.x : currentXYset.x) * cos(32 * PI * t + angle);
-      const myY =
-        y +
-        (sequence ? currentSet.y : currentXYset.y) * sin(9 * PI * t + angle);
+  sketch.setup = () => {
+    updateCanvasSize(); // Set initial canvas size
+    sketch.createCanvas(canvasWidth, canvasHeight);
+    sketch.noStroke();
+    updateTIncrement();
 
-      switch (shapeMode) {
-        case "rectangle":
-          rect(myX, myY, particleSize, particleSize);
-          break;
-        case "ellipse":
-          ellipse(myX, myY, particleSize, particleSize);
-          break;
-        case "triangle":
-          drawTriangle(myX, myY, particleSize);
-          break;
-        case "line":
-          const lineWidth = 4; // Set the line width
-          stroke(currentColor.r, currentColor.g, currentColor.b); // Use current palette color
-          strokeWeight(lineWidth); // Apply the line width
-          line(myX, myY, myX + particleSize * 1, myY + particleSize * 1);
-          noStroke();
-          break;
-        case "star":
-          drawStar(myX, myY, particleSize / 2, particleSize, 5);
-          break;
+    // Adjust globalX and globalY based on scaled canvas size
+    globalX = canvasWidth * 0.2; // Example: 20% of canvas width
+    globalY = canvasHeight * 0.2; // Example: 20% of canvas height
+
+    for (let x = 0; x <= sketch.width; x += particleSpacing) {
+      for (let y = 0; y <= sketch.height; y += particleSpacing) {
+        let colorIndex = getColorIndex(x, y, sketch);
+        particleData.push({ x, y, colorIndex });
       }
     }
-  }
 
-  t += 0.0005; // Increment time variable
-}
+    $fx.features({
+      "shape:": shapeMode,
+      "palette:": currentPaletteName,
+      "xy-values": currentXYset.name,
+      "color mode": colorMode,
+      "t =": tIncrement.toFixed(4),
+      "particle spacing": particleSpacingMode,
+    });
+  };
 
-function drawTriangle(x, y, size) {
-  const height = size * (sqrt(3) / 2);
-  triangle(
-    x - size / 2,
-    y + height / 2,
-    x + size / 2,
-    y + height / 2,
-    x,
-    y - height / 2
-  );
-}
+  sketch.windowResized = () => {
+    updateCanvasSize();
+    sketch.resizeCanvas(canvasWidth, canvasHeight);
 
-function drawStar(x, y, radius1, radius2, npoints) {
-  let angle = TWO_PI / npoints;
-  let halfAngle = angle / 2.0;
-  beginShape();
-  for (let a = 0; a < TWO_PI; a += angle) {
-    let sx = x + cos(a) * radius2;
-    let sy = y + sin(a) * radius2;
-    vertex(sx, sy);
-    sx = x + cos(a + halfAngle) * radius1;
-    sy = y + sin(a + halfAngle) * radius1;
-    vertex(sx, sy);
-  }
-  endShape(CLOSE);
-}
+    // Recalculate globalX and globalY based on the new canvas size
+    globalX = canvasWidth * 0.2; // Example: 20% of canvas width
+    globalY = canvasHeight * 0.2; // Example: 20% of canvas height
+  };
 
-function updateValueSets() {
-  valueSets = intervals.map((interval) => ({
-    x: currentXYset.x + interval.x,
-    y: currentXYset.y + interval.y,
-  }));
-  console.log("Updated valueSets based on current myXYvalueSet:", valueSets);
-}
-
-function updateSequenceValues() {
-  const index = floor(random(valueSets.length));
-  currentSet = valueSets[index];
-}
-
-// Function to refresh random color assignments
-function refreshRandomColors() {
-  for (let x = 0; x <= width; x += 32) {
-    for (let y = 0; y <= height; y += 32) {
-      randomColors[x][y] = floor(random(currentPalette.length));
-    }
-  }
-}
-
-function keyPressed() {
-  if (key === "1") {
-    colorMode = "random";
-  } else if (key === "2") {
-    colorMode = "each line";
-  } else if (key === "3") {
-    colorMode = "noise";
-  } else if (key.toUpperCase() === "W") {
-    currentPaletteIndex = (currentPaletteIndex + 1) % palettes.length;
-    currentPalette = palettes[currentPaletteIndex];
-    refreshRandomColors();
-    console.log("Palette changed to:", currentPalette);
-  } else if (key.toUpperCase() === "Q") {
-    currentPaletteIndex =
-      (currentPaletteIndex - 1 + palettes.length) % palettes.length;
-    currentPalette = palettes[currentPaletteIndex];
-    refreshRandomColors();
-    console.log("Palette changed to:", currentPalette);
-  } else if (key.toUpperCase() === "S") {
-    sequence = !sequence;
-    console.log("Sequence mode toggled to:", sequence);
-  } else if (key.toUpperCase() === "X") {
-    // Move to next shape mode
-    shapeModeIndex = (shapeModeIndex + 1) % shapeModes.length;
-    shapeMode = shapeModes[shapeModeIndex];
-    console.log("Shape mode changed to:", shapeMode);
-  } else if (key.toUpperCase() === "Z") {
-    // Move to previous shape mode
-    if (shapeModeIndex === 0) {
-      shapeModeIndex = shapeModes.length - 1;
+  function updateCanvasSize() {
+    if (sketch.windowWidth / sketch.windowHeight > aspectRatio) {
+      canvasHeight = sketch.windowHeight;
+      canvasWidth = canvasHeight * aspectRatio; // Maintain aspect ratio
     } else {
-      shapeModeIndex--;
+      canvasWidth = sketch.windowWidth;
+      canvasHeight = canvasWidth / aspectRatio; // Maintain aspect ratio
     }
-    shapeMode = shapeModes[shapeModeIndex];
-    console.log("Shape mode changed to:", shapeMode);
-  } else if (key.toUpperCase() === "F") {
-    currentXYsetIndex = (currentXYsetIndex + 1) % myXYvalueSets.length;
-    currentXYset = myXYvalueSets[currentXYsetIndex];
-    updateValueSets(); // Update sequence values relative to the new currentXYset
-    console.log("Current myXYvalueSet changed to:", currentXYset);
-  } else if (key.toUpperCase() === "D") {
-    currentXYsetIndex =
-      (currentXYsetIndex - 1 + myXYvalueSets.length) % myXYvalueSets.length;
-    currentXYset = myXYvalueSets[currentXYsetIndex];
-    updateValueSets(); // Update sequence values relative to the new currentXYset
-    console.log("Current myXYvalueSet changed to:", currentXYset);
   }
-}
+
+  sketch.draw = () => {
+    sketch.background(15, 10); // Set background to slightly dark to show particle trails
+
+    // Increment time based on the current tIncrement value
+    t += tIncrement;
+
+    // Loop through each particle to compute its position and draw it
+    particleData.forEach((particle) => {
+      let currentColor = currentPalette[particle.colorIndex];
+      sketch.fill(currentColor.r, currentColor.g, currentColor.b); // Set the color of the shape
+
+      // Calculate the angle based on globalX and globalY for interesting motion dynamics
+      let angle = getAngle(particle.x, particle.y, globalX, globalY, sketch);
+      let myX =
+        particle.x + currentXYset.x * sketch.cos(32 * sketch.PI * t + angle);
+      let myY =
+        particle.y + currentXYset.y * sketch.sin(9 * sketch.PI * t + angle);
+
+      // Draw the shape based on the current mode and size at the calculated position
+      drawShape(myX, myY, shapeMode, particleSize, currentColor, sketch);
+    });
+  };
+
+  function getColorIndex(x, y, p) {
+    switch (colorMode) {
+      case "checkerboard":
+        return (
+          ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
+          (currentPalette.length - 1)
+        );
+      case "diagonal line":
+        return Math.floor((x + y) / 32) % currentPalette.length;
+      case "vertical":
+        return Math.floor(x / 32) % currentPalette.length;
+      case "horizontal stripes":
+        return horizontalStripes(x, y, p);
+      case "grid line":
+        return gridline(x, y, p);
+      default:
+        return 0; // Default to first color if mode is undefined
+    }
+  }
+
+  function horizontalStripes(x, y, p) {
+    let numStripes = 10; // Adjust the number of horizontal stripes
+    let stripeHeight = p.height / numStripes;
+    return Math.floor(y / stripeHeight) % currentPalette.length;
+  }
+
+  function gridline(x, y, p) {
+    let gridSize = 50; // Control the size of the grid squares
+    // Alternating grid pattern based on both x and y positions
+    return (
+      ((Math.floor(x / gridSize) + Math.floor(y / gridSize)) % 2) *
+      (currentPalette.length - 1)
+    );
+  }
+
+  function getAngle(x, y, gx, gy, p) {
+    const xAngle = p.map(gx, 0, p.width, 0, p.TWO_PI, true);
+    const yAngle = p.map(gy, 0, p.height, 0, p.TWO_PI, true);
+    return xAngle * (x / p.width) + yAngle * (y / p.height);
+  }
+
+  function drawShape(x, y, mode, size, color, p) {
+    switch (mode) {
+      case "ellipse":
+        p.ellipse(x, y, size, size);
+        break;
+      case "rectangle":
+        p.rect(x, y, size, size);
+        break;
+      case "triangle":
+        drawTriangle(x, y, size, p);
+        break;
+      case "line":
+        drawLine(x, y, size, color, p); // Pass the current color to drawLine
+        break;
+      case "star":
+        drawStar(x, y, size, p);
+        break;
+      case "cross":
+        drawCross(x, y, size, color, p);
+        break;
+      case "ghost line":
+        drawghostLine(x, y, size, color, p);
+        break;
+    }
+  }
+
+  function drawTriangle(x, y, size, p) {
+    const height = size * (Math.sqrt(3) / 2);
+    p.triangle(
+      x - size / 2,
+      y + height / 2,
+      x + size / 2,
+      y + height / 2,
+      x,
+      y - height / 2
+    );
+  }
+
+  function drawLine(x, y, size, color, p) {
+    const lineWidth = 5; // Consistent with the original script
+    p.stroke(color.r, color.g, color.b); // Use dynamic color
+    p.strokeWeight(lineWidth);
+    p.line(x, y, x + size, y + size);
+    p.noStroke();
+  }
+
+  function drawStar(x, y, size, p) {
+    let points = 5; // Example for a star with 5 points
+    let angle = p.TWO_PI / points;
+    let halfAngle = angle / 2.0;
+    p.beginShape();
+    for (let a = 0; a < p.TWO_PI; a += angle) {
+      let sx = x + p.cos(a) * size;
+      let sy = y + p.sin(a) * size;
+      p.vertex(sx, sy);
+      sx = x + p.cos(a + halfAngle) * size * 0.5;
+      sy = y + p.sin(a + halfAngle) * size * 0.5;
+      p.vertex(sx, sy);
+    }
+    p.endShape(p.CLOSE);
+  }
+
+  function drawghostLine(x, y, size, color, p) {
+    p.stroke(color.r, color.g, color.b);
+    p.strokeWeight(2); // You can adjust the stroke weight as needed
+    let angle = p.PI / 4; // 45 degrees, but you can set any angle you like
+    let xOffset = size * p.cos(angle);
+    let yOffset = size * p.sin(angle);
+    p.line(x - xOffset, y - yOffset, x + xOffset, y + yOffset);
+    p.noStroke();
+  }
+
+  function drawCross(x, y, size, color, p) {
+    p.stroke(color.r, color.g, color.b);
+    p.strokeWeight(2); // Consistent with other shapes
+    p.line(x - size / 2, y, x + size / 2, y); // Horizontal line
+    p.line(x, y - size / 2, x, y + size / 2); // Vertical line
+    p.noStroke();
+  }
+});
