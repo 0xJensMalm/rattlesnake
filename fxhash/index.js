@@ -13,27 +13,29 @@ new p5((sketch) => {
   let globalX, globalY;
   let particleSize = 15;
 
-  let spacingModes = {
-    regular: 32,
-    dense: 30,
-    densePlus: 28,
-    extreme: 24,
-  };
-  let shapeModes = [
-    "ellipse",
-    "rectangle",
-    "triangle",
-    "line",
-    "star",
-    "angled line",
-    "cross",
+  let spacingModes = [
+    { mode: "regular", spacing: 32, weight: 60 },
+    { mode: "dense", spacing: 30, weight: 30 },
+    { mode: "densePlus", spacing: 28, weight: 15 },
+    { mode: "extreme", spacing: 24, weight: 2 },
   ];
+
+  let shapeModes = [
+    { shape: "ellipse", weight: 30 },
+    { shape: "rectangle", weight: 20 },
+    { shape: "triangle", weight: 15 },
+    { shape: "line", weight: 10 },
+    { shape: "star", weight: 10 },
+    { shape: "angled line", weight: 10 },
+    { shape: "cross", weight: 5 },
+  ];
+
   let colorModes = [
-    "checkerboard",
-    "diagonal lines",
-    "vertical",
-    "horizontal stripes",
-    "grid lines",
+    { mode: "checkerboard", weight: 10 },
+    { mode: "diagonal lines", weight: 25 },
+    { mode: "vertical", weight: 30 },
+    { mode: "horizontal stripes", weight: 20 },
+    { mode: "grid lines", weight: 10 },
   ];
 
   const ranges = {
@@ -85,7 +87,6 @@ new p5((sketch) => {
     { name: "random range hard", ...getRandomValues("hard", sketch) },
     { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
     { name: "hardRain", x: 7, y: 591, globalX: 343, globalY: 368 },
-
     { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
     { name: "z=g", x: 400, y: 500, globalX: 20, globalY: 20 },
     { name: "init", x: 20, y: 200, globalX: 200, globalY: 500 },
@@ -151,27 +152,30 @@ new p5((sketch) => {
   };
 
   // Select initial configurations randomly
-
+  let { mode: particleSpacingMode, spacing: particleSpacing } =
+    weightedRandom(spacingModes);
   let currentXYsetIndex = sketch.floor(sketch.random(myXYvalueSets.length));
   let currentXYset = myXYvalueSets[currentXYsetIndex];
-  let shapeMode = shapeModes[sketch.floor($fx.rand() * shapeModes.length)];
-  let colorMode = colorModes[sketch.floor($fx.rand() * colorModes.length)];
+  let shapeMode = weightedRandom(shapeModes).shape;
+  let colorMode = weightedRandom(colorModes).mode;
   let currentPalette = palettes[sketch.floor($fx.rand() * palettes.length)];
   let particleData = [];
 
   currentPaletteName = sketch.random(Object.keys(palettes));
   currentPalette = palettes[currentPaletteName];
 
-  function setParticleSpacing() {
-    const keys = Object.keys(spacingModes);
-    const selectedKey = keys[sketch.floor(sketch.random(keys.length))];
-    return {
-      mode: selectedKey,
-      spacing: spacingModes[selectedKey],
-    };
+  function weightedRandom(items) {
+    let totalWeight = items.reduce((total, item) => total + item.weight, 0);
+    let choice = Math.random() * totalWeight;
+    let sum = 0;
+
+    for (let item of items) {
+      sum += item.weight;
+      if (sum > choice) {
+        return item;
+      }
+    }
   }
-  let { mode: particleSpacingMode, spacing: particleSpacing } =
-    setParticleSpacing();
 
   function getRandomValues(mode, sketch) {
     const local = ranges[mode];
@@ -190,7 +194,7 @@ new p5((sketch) => {
   }
 
   function updateTIncrement() {
-    tIncrement = sketch.random(0.0001, 0.0003);
+    tIncrement = sketch.random(0.0001, 0.0002);
     $fx.features({
       "t Increment": tIncrement.toFixed(4),
     });
