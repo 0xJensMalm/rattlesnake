@@ -1,5 +1,5 @@
 new p5((sketch) => {
-  const aspectRatio = 1000 / 600; // Original aspect ratio (e.g., 1000x600)
+  const aspectRatio = 1000 / 1000; // Original aspect ratio (e.g., 1000x600)
   let canvasWidth, canvasHeight;
 
   // Seeding for consistent randomness
@@ -19,8 +19,6 @@ new p5((sketch) => {
     densePlus: 28,
     extreme: 24,
   };
-
-  // Shape and color mode configurations
   let shapeModes = [
     "ellipse",
     "rectangle",
@@ -37,33 +35,6 @@ new p5((sketch) => {
     "horizontal stripes",
     "grid lines",
   ];
-
-  function setParticleSpacing() {
-    const keys = Object.keys(spacingModes);
-    const selectedKey = keys[sketch.floor(sketch.random(keys.length))];
-    return {
-      mode: selectedKey,
-      spacing: spacingModes[selectedKey],
-    };
-  }
-  let { mode: particleSpacingMode, spacing: particleSpacing } =
-    setParticleSpacing();
-
-  function getRandomValues(mode, sketch) {
-    const local = ranges[mode];
-    const values = {
-      // Capture values in a variable to log them
-      x: sketch.random(local.x[0], local.x[1]),
-      y: sketch.random(local.y[0], local.y[1]),
-      globalX: sketch.random(local.globalX[0], local.globalX[1]),
-      globalY: sketch.random(local.globalY[0], local.globalY[1]),
-    };
-
-    // Log the values with a descriptive message
-    console.log(`Random values for mode '${mode}':`, values);
-
-    return values;
-  }
 
   const ranges = {
     light: {
@@ -105,7 +76,6 @@ new p5((sketch) => {
     },
   };
 
-  // Placeholder for XY value sets and palettes
   let myXYvalueSets = [
     { name: "random range light", ...getRandomValues("light", sketch) },
     { name: "random range mid", ...getRandomValues("mid", sketch) },
@@ -192,6 +162,33 @@ new p5((sketch) => {
   currentPaletteName = sketch.random(Object.keys(palettes));
   currentPalette = palettes[currentPaletteName];
 
+  function setParticleSpacing() {
+    const keys = Object.keys(spacingModes);
+    const selectedKey = keys[sketch.floor(sketch.random(keys.length))];
+    return {
+      mode: selectedKey,
+      spacing: spacingModes[selectedKey],
+    };
+  }
+  let { mode: particleSpacingMode, spacing: particleSpacing } =
+    setParticleSpacing();
+
+  function getRandomValues(mode, sketch) {
+    const local = ranges[mode];
+    const values = {
+      // Capture values in a variable to log them
+      x: sketch.random(local.x[0], local.x[1]),
+      y: sketch.random(local.y[0], local.y[1]),
+      globalX: sketch.random(local.globalX[0], local.globalX[1]),
+      globalY: sketch.random(local.globalY[0], local.globalY[1]),
+    };
+
+    // Log the values with a descriptive message
+    console.log(`Random values for mode '${mode}':`, values);
+
+    return values;
+  }
+
   function updateTIncrement() {
     tIncrement = sketch.random(0.0001, 0.0003);
     $fx.features({
@@ -215,8 +212,6 @@ new p5((sketch) => {
         particleData.push({ x, y, colorIndex });
       }
     }
-
-    initializeParticles();
 
     $fx.features({
       "shape:": shapeMode,
@@ -258,19 +253,6 @@ new p5((sketch) => {
     } else {
       canvasWidth = sketch.windowWidth;
       canvasHeight = canvasWidth / aspectRatio;
-    }
-  }
-
-  function initializeParticles() {
-    // Calculate spacing and positions relative to the canvas size
-    let particleSpacing =
-      canvasWidth / (1000 / spacingModes[particleSpacingMode]); // Example scaling
-    particleData = []; // Reset particles array
-    for (let x = 0; x <= canvasWidth; x += particleSpacing) {
-      for (let y = 0; y <= canvasHeight; y += particleSpacing) {
-        let colorIndex = getColorIndex(x, y, sketch);
-        particleData.push({ x, y, colorIndex });
-      }
     }
   }
 
