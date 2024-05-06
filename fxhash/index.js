@@ -26,7 +26,7 @@ new p5((sketch) => {
     { shape: "triangle", weight: 15 },
     { shape: "line", weight: 10 },
     { shape: "star", weight: 10 },
-    { shape: "angled line", weight: 10 },
+    { shape: "ghost line", weight: 10 },
     { shape: "cross", weight: 5 },
   ];
 
@@ -79,19 +79,43 @@ new p5((sketch) => {
   };
 
   let myXYvalueSets = [
-    { name: "random range light", ...getRandomValues("light", sketch) },
-    { name: "random range mid", ...getRandomValues("mid", sketch) },
-    { name: "random range mid plus", ...getRandomValues("midplus", sketch) },
-    { name: "random range mid weird", ...getRandomValues("midweird", sketch) },
-    { name: "random range chaos", ...getRandomValues("chaos", sketch) },
-    { name: "random range hard", ...getRandomValues("hard", sketch) },
-    { name: "flashy", x: 400, y: 0, globalX: 1000, globalY: 0 },
-    { name: "hardRain", x: 7, y: 591, globalX: 343, globalY: 368 },
-    { name: "gX.gY=0", x: 400, y: 30, globalX: 0, globalY: 0 },
-    { name: "z=g", x: 400, y: 500, globalX: 20, globalY: 20 },
-    { name: "init", x: 20, y: 200, globalX: 200, globalY: 500 },
-    { name: "flight", x: 500, y: 600, globalX: 200, globalY: 200 },
-    { name: "school of snakes", x: 150, y: 400, globalX: 200, globalY: 200 },
+    {
+      name: "random range light",
+      weight: 10,
+      values: getLazyRandomValues("light"),
+    },
+    {
+      name: "random range mid",
+      weight: 30,
+      values: getLazyRandomValues("mid"),
+    },
+    {
+      name: "random range mid plus",
+      weight: 30,
+      values: getLazyRandomValues("midplus"),
+    },
+    {
+      name: "random range mid weird",
+      weight: 10,
+      values: getLazyRandomValues("midweird"),
+    },
+    {
+      name: "random range chaos",
+      weight: 50,
+      values: getLazyRandomValues("chaos"),
+    },
+    {
+      name: "random range hard",
+      weight: 20,
+      values: getLazyRandomValues("hard"),
+    },
+    // Keep these as they are, no dynamic values needed
+    { name: "f=y", weight: 5, x: 400, y: 0, globalX: 1000, globalY: 0 },
+    { name: "hardRain", weight: 10, x: 7, y: 591, globalX: 343, globalY: 368 },
+    { name: "gX.gY=0", weight: 5, x: 400, y: 30, globalX: 0, globalY: 0 },
+    { name: "z=g", weight: 3, x: 400, y: 500, globalX: 20, globalY: 20 },
+    { name: "flight", weight: 10, x: 500, y: 600, globalX: 200, globalY: 200 },
+    { name: "snakes", weight: 10, x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
 
   let palettes = {
@@ -154,12 +178,14 @@ new p5((sketch) => {
   // Select initial configurations randomly
   let { mode: particleSpacingMode, spacing: particleSpacing } =
     weightedRandom(spacingModes);
-  let currentXYsetIndex = sketch.floor(sketch.random(myXYvalueSets.length));
-  let currentXYset = myXYvalueSets[currentXYsetIndex];
   let shapeMode = weightedRandom(shapeModes).shape;
   let colorMode = weightedRandom(colorModes).mode;
   let currentPalette = palettes[sketch.floor($fx.rand() * palettes.length)];
   let particleData = [];
+  let currentXYset = weightedRandom(myXYvalueSets);
+  if (currentXYset.values) {
+    currentXYset = { ...currentXYset, ...currentXYset.values() };
+  }
 
   currentPaletteName = sketch.random(Object.keys(palettes));
   currentPalette = palettes[currentPaletteName];
@@ -177,20 +203,18 @@ new p5((sketch) => {
     }
   }
 
-  function getRandomValues(mode, sketch) {
-    const local = ranges[mode];
-    const values = {
-      // Capture values in a variable to log them
-      x: sketch.random(local.x[0], local.x[1]),
-      y: sketch.random(local.y[0], local.y[1]),
-      globalX: sketch.random(local.globalX[0], local.globalX[1]),
-      globalY: sketch.random(local.globalY[0], local.globalY[1]),
+  function getLazyRandomValues(mode) {
+    return () => {
+      const local = ranges[mode];
+      const values = {
+        x: sketch.random(local.x[0], local.x[1]),
+        y: sketch.random(local.y[0], local.y[1]),
+        globalX: sketch.random(local.globalX[0], local.globalX[1]),
+        globalY: sketch.random(local.globalY[0], local.globalY[1]),
+      };
+      console.log(`Random values for mode '${mode}':`, values);
+      return values;
     };
-
-    // Log the values with a descriptive message
-    console.log(`Random values for mode '${mode}':`, values);
-
-    return values;
   }
 
   function updateTIncrement() {
@@ -330,8 +354,8 @@ new p5((sketch) => {
       case "cross":
         drawCross(x, y, size, color, p);
         break;
-      case "angled line":
-        drawAngledLine(x, y, size, color, p);
+      case "ghost line":
+        drawghostLine(x, y, size, color, p);
         break;
     }
   }
@@ -372,7 +396,7 @@ new p5((sketch) => {
     p.endShape(p.CLOSE);
   }
 
-  function drawAngledLine(x, y, size, color, p) {
+  function drawghostLine(x, y, size, color, p) {
     p.stroke(color.r, color.g, color.b);
     p.strokeWeight(2); // You can adjust the stroke weight as needed
     let angle = p.PI / 4; // 45 degrees, but you can set any angle you like
