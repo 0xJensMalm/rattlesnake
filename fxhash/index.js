@@ -1,5 +1,5 @@
 new p5((sketch) => {
-  const aspectRatio = 1000 / 1000; // Original aspect ratio (e.g., 1000x600)
+  const aspectRatio = 1200 / 1000; // Original aspect ratio (e.g., 1000x600)
   let canvasWidth, canvasHeight;
 
   // Seeding for consistent randomness
@@ -12,6 +12,7 @@ new p5((sketch) => {
   let tIncrement = 0.0005;
   let globalX, globalY;
   let particleSize = 15;
+  let trailAlpha = 6 + $fx.rand() * 12;
 
   let spacingModes = [
     { mode: "regular", spacing: 32, weight: 60 },
@@ -21,12 +22,12 @@ new p5((sketch) => {
   ];
 
   let shapeModes = [
-    { shape: "ellipse", weight: 30 },
+    { shape: "ellipse", weight: 20 },
     { shape: "rectangle", weight: 20 },
     { shape: "triangle", weight: 15 },
-    { shape: "line", weight: 10 },
-    { shape: "star", weight: 10 },
-    { shape: "ghost line", weight: 10 },
+    { shape: "line", weight: 30 },
+    { shape: "star", weight: 1 },
+    { shape: "ghost line", weight: 5 },
     { shape: "cross", weight: 5 },
   ];
 
@@ -119,17 +120,11 @@ new p5((sketch) => {
   ];
 
   let palettes = {
-    jungle: [
-      { r: 153, g: 50, b: 204 }, // Orchid purple
-      { r: 34, g: 139, b: 34 }, // Deep jungle green
-      { r: 0, g: 153, b: 204 }, // Parrot feather blue
-      { r: 255, g: 140, b: 0 }, // Tropical sunset orange
-    ],
-    golid4ever: [
-      { r: 87, g: 183, b: 171 },
-      { r: 236, g: 101, b: 59 },
-      { r: 31, g: 60, b: 67 },
-      { r: 248, g: 203, b: 87 },
+    darkBlood: [
+      { r: 234, g: 0, b: 1 },
+      { r: 0, g: 0, b: 0 },
+      { r: 234, g: 0, b: 1 },
+      { r: 0, g: 0, b: 0 },
     ],
     fidenza: [
       { r: 235, g: 228, b: 216 },
@@ -167,11 +162,17 @@ new p5((sketch) => {
       { r: 255, g: 84, b: 0 },
       { r: 255, g: 189, b: 0 },
     ],
-    retroFuture: [
-      { r: 23, g: 43, b: 61 },
-      { r: 89, g: 173, b: 235 },
-      { r: 245, g: 215, b: 189 },
-      { r: 234, g: 62, b: 64 },
+    mint: [
+      { r: 248, g: 182, b: 45 },
+      { r: 227, g: 255, b: 63 },
+      { r: 100, g: 252, b: 201 },
+      { r: 5, g: 215, b: 224 },
+    ],
+    mint: [
+      { r: 248, g: 182, b: 45 },
+      { r: 227, g: 255, b: 63 },
+      { r: 100, g: 252, b: 201 },
+      { r: 5, g: 215, b: 224 },
     ],
   };
 
@@ -192,7 +193,7 @@ new p5((sketch) => {
 
   function weightedRandom(items) {
     let totalWeight = items.reduce((total, item) => total + item.weight, 0);
-    let choice = Math.random() * totalWeight;
+    let choice = $fx.rand() * totalWeight;
     let sum = 0;
 
     for (let item of items) {
@@ -207,10 +208,12 @@ new p5((sketch) => {
     return () => {
       const local = ranges[mode];
       const values = {
-        x: sketch.random(local.x[0], local.x[1]),
-        y: sketch.random(local.y[0], local.y[1]),
-        globalX: sketch.random(local.globalX[0], local.globalX[1]),
-        globalY: sketch.random(local.globalY[0], local.globalY[1]),
+        x: local.x[0] + $fx.rand() * (local.x[1] - local.x[0]),
+        y: local.y[0] + $fx.rand() * (local.y[1] - local.y[0]),
+        globalX:
+          local.globalX[0] + $fx.rand() * (local.globalX[1] - local.globalX[0]),
+        globalY:
+          local.globalY[0] + $fx.rand() * (local.globalY[1] - local.globalY[0]),
       };
       console.log(`Random values for mode '${mode}':`, values);
       return values;
@@ -248,11 +251,12 @@ new p5((sketch) => {
       "color mode": colorMode,
       "t =": tIncrement.toFixed(4),
       "particle spacing": particleSpacingMode,
+      "trail alpha": `${trailAlpha.toFixed(1)}`,
     });
   };
 
   sketch.draw = () => {
-    sketch.background(15, 10); // Set background to slightly dark to show particle trails
+    sketch.background(10, 10, 10, trailAlpha);
 
     // Increment time based on the current tIncrement value
     t += tIncrement;
@@ -274,21 +278,20 @@ new p5((sketch) => {
     });
   };
 
-  function updateCanvasSize() {
-    if (sketch.windowWidth / sketch.windowHeight > aspectRatio) {
-      canvasHeight = sketch.windowHeight;
-      canvasWidth = canvasHeight * aspectRatio;
-    } else {
-      canvasWidth = sketch.windowWidth;
-      canvasHeight = canvasWidth / aspectRatio;
-    }
-  }
-
   sketch.windowResized = () => {
     updateCanvasSize();
     sketch.resizeCanvas(canvasWidth, canvasHeight);
-    initializeParticles(); // Reinitialize particles to new layout
   };
+
+  function updateCanvasSize() {
+    if (sketch.windowWidth / sketch.windowHeight > aspectRatio) {
+      canvasHeight = sketch.windowHeight;
+      canvasWidth = canvasHeight * aspectRatio; // Maintain aspect ratio
+    } else {
+      canvasWidth = sketch.windowWidth;
+      canvasHeight = canvasWidth / aspectRatio; // Maintain aspect ratio
+    }
+  }
 
   function getColorIndex(x, y, p) {
     switch (colorMode) {
