@@ -23,19 +23,19 @@ new p5((sketch) => {
   let shapeModes = [
     { shape: "ellipse", weight: 20 },
     { shape: "rectangle", weight: 20 },
-    { shape: "triangle", weight: 15 },
+    { shape: "triangle", weight: 20 },
     { shape: "line", weight: 30 },
-    { shape: "star", weight: 1 },
-    { shape: "ghost line", weight: 5 },
-    { shape: "cross", weight: 5 },
+    { shape: "star", weight: 2 },
+    { shape: "ghost line", weight: 6 },
+    { shape: "cross", weight: 6 },
   ];
 
   let colorModes = [
     { mode: "checkerboard", weight: 10 },
-    { mode: "diagonal lines", weight: 25 },
+    { mode: "diagonal line", weight: 25 },
     { mode: "vertical", weight: 30 },
     { mode: "horizontal stripes", weight: 20 },
-    { mode: "grid lines", weight: 10 },
+    { mode: "grid line", weight: 10 },
   ];
 
   const ranges = {
@@ -45,30 +45,36 @@ new p5((sketch) => {
       globalX: [70, 500],
       globalY: [70, 500],
     },
-    mid: {
+    z: {
       //good!
       x: [150, 300],
       y: [150, 300],
       globalX: [300, 450],
       globalY: [300, 450],
     },
-    midplus: {
+    x: {
       x: [250, 500],
       y: [250, 500],
       globalX: [400, 550],
       globalY: [400, 550],
     },
-    midweird: {
-      x: [350, 600],
-      y: [100, 300],
-      globalX: [400, 550],
-      globalY: [150, 550],
-    },
-    hard: {
+    y: {
       x: [300, 450],
       y: [300, 450],
       globalX: [450, 600],
       globalY: [450, 600],
+    },
+    $: {
+      x: [10, 200],
+      y: [500, 700],
+      globalX: [300, 400],
+      globalY: [300, 400],
+    },
+    c: {
+      x: [20, 150],
+      y: [800, 950],
+      globalX: [300, 500],
+      globalY: [30, 70],
     },
     chaos: {
       x: [0, 1000],
@@ -80,50 +86,69 @@ new p5((sketch) => {
 
   let myXYvalueSets = [
     {
-      name: "random range light",
+      name: "random-range light",
       weight: 10,
       values: getLazyRandomValues("light"),
     },
     {
-      name: "random range mid",
+      name: "random-range z",
       weight: 30,
-      values: getLazyRandomValues("mid"),
+      values: getLazyRandomValues("z"),
     },
     {
-      name: "random range mid plus",
-      weight: 30,
-      values: getLazyRandomValues("midplus"),
+      name: "random-range x",
+      weight: 20,
+      values: getLazyRandomValues("x"),
     },
     {
-      name: "random range mid weird",
+      name: "random-range $",
+      weight: 30,
+      values: getLazyRandomValues("$"),
+    },
+
+    {
+      name: "random-range chaos",
       weight: 10,
-      values: getLazyRandomValues("midweird"),
-    },
-    {
-      name: "random range chaos",
-      weight: 50,
       values: getLazyRandomValues("chaos"),
     },
     {
-      name: "random range hard",
-      weight: 20,
-      values: getLazyRandomValues("hard"),
+      name: "random-range y",
+      weight: 15,
+      values: getLazyRandomValues("y"),
+    },
+    {
+      name: "random-range c",
+      weight: 10,
+      values: getLazyRandomValues("c"),
     },
     // Keep these as they are, no dynamic values needed
-    { name: "f=y", weight: 5, x: 400, y: 0, globalX: 1000, globalY: 0 },
+    { name: "f=y", weight: 3, x: 400, y: 0, globalX: 1000, globalY: 0 },
     { name: "hardRain", weight: 10, x: 7, y: 591, globalX: 343, globalY: 368 },
-    { name: "gX.gY=0", weight: 5, x: 400, y: 30, globalX: 0, globalY: 0 },
-    { name: "z=g", weight: 3, x: 400, y: 500, globalX: 20, globalY: 20 },
-    { name: "flight", weight: 10, x: 500, y: 600, globalX: 200, globalY: 200 },
-    { name: "snakes", weight: 10, x: 150, y: 400, globalX: 200, globalY: 200 },
+    { name: "gX.gY=0", weight: 2, x: 400, y: 30, globalX: 0, globalY: 0 },
+    { name: "z=g", weight: 2, x: 400, y: 500, globalX: 20, globalY: 20 },
+    { name: "flight", weight: 8, x: 500, y: 600, globalX: 200, globalY: 200 },
+    { name: "snakes", weight: 8, x: 150, y: 400, globalX: 200, globalY: 200 },
   ];
 
   let palettes = {
-    darkBlood: [
-      { r: 234, g: 0, b: 1 },
-      { r: 0, g: 0, b: 0 },
-      { r: 234, g: 0, b: 1 },
-      { r: 0, g: 0, b: 0 },
+    blackGold: [
+      { r: 0, g: 0, b: 0 }, // Black
+      { r: 255, g: 215, b: 0 }, // Golden yellow
+      { r: 255, g: 193, b: 7 }, // Vibrant gold
+      { r: 255, g: 127, b: 0 }, // Orange-gold
+    ],
+    breeze: [
+      { r: 174, g: 214, b: 241 }, // Pale sky blue
+      { r: 120, g: 190, b: 209 }, // Blue grey
+      { r: 35, g: 123, b: 156 }, // Denim blue
+      { r: 244, g: 246, b: 247 }, // Off-white
+    ],
+
+    tropic: [
+      { r: 7, g: 144, b: 77 }, // Jade green
+      { r: 254, g: 199, b: 91 }, // Mango yellow
+      { r: 247, g: 121, b: 50 }, // Coral red
+      { r: 255, g: 255, b: 255 }, // Pure white
     ],
     fidenza: [
       { r: 235, g: 228, b: 216 },
@@ -142,12 +167,6 @@ new p5((sketch) => {
       { r: 101, g: 67, b: 33 }, // Dark seed brown
       { r: 135, g: 206, b: 235 }, // Sky blue
       { r: 124, g: 252, b: 0 }, // Leaf green
-    ],
-    monochrome: [
-      { r: 255, g: 255, b: 255 }, // Pure white
-      { r: 192, g: 192, b: 192 }, // Soft gray
-      { r: 128, g: 128, b: 128 }, // Deep gray
-      { r: 0, g: 0, b: 0 }, // Jet black
     ],
     angelic: [
       { r: 255, g: 255, b: 255 },
@@ -172,12 +191,6 @@ new p5((sketch) => {
       { r: 247, g: 12, b: 190 }, // Jellyfish pink
       { r: 3, g: 252, b: 236 }, // Neon blue
       { r: 20, g: 239, b: 20 }, // Glowing green
-    ],
-    amiga: [
-      { r: 0, g: 135, b: 189 }, // Electric blue
-      { r: 255, g: 0, b: 255 }, // Hot magenta
-      { r: 0, g: 255, b: 0 }, // Neon green
-      { r: 255, g: 255, b: 0 }, // Bright yellow
     ],
     sunGod: [
       { r: 227, g: 178, b: 0 }, // Sun gold
@@ -257,8 +270,8 @@ new p5((sketch) => {
 
     $fx.features({
       "shape:": shapeMode,
-      "palette name": currentPaletteName,
-      "XY value set": currentXYset.name,
+      "palette:": currentPaletteName,
+      "xy-values": currentXYset.name,
       "color mode": colorMode,
       "t =": tIncrement.toFixed(4),
       "particle spacing": particleSpacingMode,
@@ -310,14 +323,14 @@ new p5((sketch) => {
           ((Math.floor(x / 32) + Math.floor(y / 32)) % 2) *
           (currentPalette.length - 1)
         );
-      case "diagonal lines":
+      case "diagonal line":
         return Math.floor((x + y) / 32) % currentPalette.length;
       case "vertical":
         return Math.floor(x / 32) % currentPalette.length;
       case "horizontal stripes":
         return horizontalStripes(x, y, p);
-      case "grid lines":
-        return gridLines(x, y, p);
+      case "grid line":
+        return gridline(x, y, p);
       default:
         return 0; // Default to first color if mode is undefined
     }
@@ -329,7 +342,7 @@ new p5((sketch) => {
     return Math.floor(y / stripeHeight) % currentPalette.length;
   }
 
-  function gridLines(x, y, p) {
+  function gridline(x, y, p) {
     let gridSize = 50; // Control the size of the grid squares
     // Alternating grid pattern based on both x and y positions
     return (
