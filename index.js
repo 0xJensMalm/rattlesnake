@@ -3,12 +3,11 @@ new p5((sketch) => {
   const originalHeight = 1000;
   const aspectRatio = originalWidth / originalHeight;
 
-  // Seeding for consistent randomness
+  //seeding
   let seedValue = sketch.int($fx.rand() * 100000);
   sketch.randomSeed(seedValue);
   sketch.noiseSeed(seedValue);
 
-  // Initial values aligned with the old sketch
   let t = 0;
   let tIncrement = 0.0005;
   let globalX, globalY;
@@ -26,9 +25,9 @@ new p5((sketch) => {
     { shape: "rectangle", weight: 20 },
     { shape: "triangle", weight: 20 },
     { shape: "line", weight: 30 },
-    { shape: "star", weight: 2 },
-    { shape: "ghost line", weight: 6 },
-    { shape: "cross", weight: 6 },
+    { shape: "star", weight: 4 },
+    { shape: "ghost line", weight: 8 },
+    { shape: "cross", weight: 10 },
   ];
 
   let colorModes = [
@@ -47,7 +46,6 @@ new p5((sketch) => {
       globalY: [70, 500],
     },
     z: {
-      //good!
       x: [150, 300],
       y: [150, 300],
       globalX: [300, 450],
@@ -122,7 +120,7 @@ new p5((sketch) => {
       weight: 10,
       values: getLazyRandomValues("c"),
     },
-    // Keep these as they are, no dynamic values needed
+    //static values
     { name: "f=y", weight: 3, x: 400, y: 0, globalX: 1000, globalY: 0 },
     { name: "hardRain", weight: 10, x: 7, y: 591, globalX: 343, globalY: 368 },
     { name: "gX.gY=0", weight: 2, x: 400, y: 30, globalX: 0, globalY: 0 },
@@ -133,23 +131,23 @@ new p5((sketch) => {
 
   let palettes = {
     blackGold: [
-      { r: 0, g: 0, b: 0 }, // Black
-      { r: 255, g: 215, b: 0 }, // Golden yellow
-      { r: 255, g: 193, b: 7 }, // Vibrant gold
-      { r: 255, g: 127, b: 0 }, // Orange-gold
+      { r: 0, g: 0, b: 0 },
+      { r: 255, g: 215, b: 0 },
+      { r: 255, g: 193, b: 7 },
+      { r: 255, g: 127, b: 0 },
     ],
     breeze: [
-      { r: 174, g: 214, b: 241 }, // Pale sky blue
-      { r: 120, g: 190, b: 209 }, // Blue grey
-      { r: 35, g: 123, b: 156 }, // Denim blue
-      { r: 244, g: 246, b: 247 }, // Off-white
+      { r: 174, g: 214, b: 241 },
+      { r: 120, g: 190, b: 209 },
+      { r: 35, g: 123, b: 156 },
+      { r: 244, g: 246, b: 247 },
     ],
 
     tropic: [
-      { r: 7, g: 144, b: 77 }, // Jade green
-      { r: 254, g: 199, b: 91 }, // Mango yellow
-      { r: 247, g: 121, b: 50 }, // Coral red
-      { r: 255, g: 255, b: 255 }, // Pure white
+      { r: 7, g: 144, b: 77 },
+      { r: 254, g: 199, b: 91 },
+      { r: 247, g: 121, b: 50 },
+      { r: 255, g: 255, b: 255 },
     ],
     fidenza: [
       { r: 235, g: 228, b: 216 },
@@ -164,10 +162,10 @@ new p5((sketch) => {
       { r: 241, g: 124, b: 55 },
     ],
     sunflower: [
-      { r: 255, g: 204, b: 0 }, // Sunflower yellow
-      { r: 101, g: 67, b: 33 }, // Dark seed brown
-      { r: 135, g: 206, b: 235 }, // Sky blue
-      { r: 124, g: 252, b: 0 }, // Leaf green
+      { r: 255, g: 204, b: 0 },
+      { r: 101, g: 67, b: 33 },
+      { r: 135, g: 206, b: 235 },
+      { r: 124, g: 252, b: 0 },
     ],
     angelic: [
       { r: 255, g: 255, b: 255 },
@@ -188,16 +186,16 @@ new p5((sketch) => {
       { r: 5, g: 215, b: 224 },
     ],
     bioluminescent: [
-      { r: 5, g: 10, b: 30 }, // Deep sea black
-      { r: 247, g: 12, b: 190 }, // Jellyfish pink
-      { r: 3, g: 252, b: 236 }, // Neon blue
-      { r: 20, g: 239, b: 20 }, // Glowing green
+      { r: 5, g: 10, b: 30 },
+      { r: 247, g: 12, b: 190 },
+      { r: 3, g: 252, b: 236 },
+      { r: 20, g: 239, b: 20 },
     ],
     sunGod: [
-      { r: 227, g: 178, b: 0 }, // Sun gold
-      { r: 191, g: 87, b: 0 }, // Terra cotta
-      { r: 255, g: 245, b: 220 }, // Llama wool white
-      { r: 153, g: 27, b: 7 }, // Inca red
+      { r: 227, g: 178, b: 0 },
+      { r: 191, g: 87, b: 0 },
+      { r: 255, g: 245, b: 220 },
+      { r: 153, g: 27, b: 7 },
     ],
   };
 
@@ -253,14 +251,16 @@ new p5((sketch) => {
   }
 
   sketch.setup = () => {
-    updateCanvasSize(); // Set initial canvas size
+    let canvas = sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+    canvas.id("myCanvas");
+    updateCanvasSize();
     sketch.createCanvas(canvasWidth, canvasHeight);
     sketch.noStroke();
     updateTIncrement();
 
     // Adjust globalX and globalY based on scaled canvas size
-    globalX = canvasWidth * 0.2; // Example: 20% of canvas width
-    globalY = canvasHeight * 0.2; // Example: 20% of canvas height
+    globalX = canvasWidth * 0.2;
+    globalY = canvasHeight * 0.2;
 
     for (let x = 0; x <= sketch.width; x += particleSpacing) {
       for (let y = 0; y <= sketch.height; y += particleSpacing) {
@@ -283,23 +283,22 @@ new p5((sketch) => {
     updateCanvasSize();
     sketch.resizeCanvas(canvasWidth, canvasHeight);
 
-    // Recalculate globalX and globalY based on the new canvas size
-    globalX = canvasWidth * 0.2; // Example: 20% of canvas width
-    globalY = canvasHeight * 0.2; // Example: 20% of canvas height
+    globalX = canvasWidth * 0.2;
+    globalY = canvasHeight * 0.2;
   };
 
   function updateCanvasSize() {
     if (sketch.windowWidth / sketch.windowHeight > aspectRatio) {
       canvasHeight = sketch.windowHeight;
-      canvasWidth = canvasHeight * aspectRatio; // Maintain aspect ratio
+      canvasWidth = canvasHeight * aspectRatio;
     } else {
       canvasWidth = sketch.windowWidth;
-      canvasHeight = canvasWidth / aspectRatio; // Maintain aspect ratio
+      canvasHeight = canvasWidth / aspectRatio;
     }
   }
 
   sketch.draw = () => {
-    sketch.background(15, 10); // Set background to slightly dark to show particle trails
+    sketch.background(0, 10); // bgColor + alpha - trails.
 
     // Increment time based on the current tIncrement value
     t += tIncrement;
@@ -309,7 +308,6 @@ new p5((sketch) => {
       let currentColor = currentPalette[particle.colorIndex];
       sketch.fill(currentColor.r, currentColor.g, currentColor.b); // Set the color of the shape
 
-      // Calculate the angle based on globalX and globalY for interesting motion dynamics
       let angle = getAngle(particle.x, particle.y, globalX, globalY, sketch);
       let myX =
         particle.x + currentXYset.x * sketch.cos(32 * sketch.PI * t + angle);
@@ -374,7 +372,7 @@ new p5((sketch) => {
         drawTriangle(x, y, size, p);
         break;
       case "line":
-        drawLine(x, y, size, color, p); // Pass the current color to drawLine
+        drawLine(x, y, size, color, p);
         break;
       case "star":
         drawStar(x, y, size, p);
@@ -401,15 +399,15 @@ new p5((sketch) => {
   }
 
   function drawLine(x, y, size, color, p) {
-    const lineWidth = 5; // Consistent with the original script
-    p.stroke(color.r, color.g, color.b); // Use dynamic color
+    const lineWidth = 5;
+    p.stroke(color.r, color.g, color.b);
     p.strokeWeight(lineWidth);
     p.line(x, y, x + size, y + size);
     p.noStroke();
   }
 
   function drawStar(x, y, size, p) {
-    let points = 5; // Example for a star with 5 points
+    let points = 5;
     let angle = p.TWO_PI / points;
     let halfAngle = angle / 2.0;
     p.beginShape();
@@ -417,8 +415,8 @@ new p5((sketch) => {
       let sx = x + p.cos(a) * size;
       let sy = y + p.sin(a) * size;
       p.vertex(sx, sy);
-      sx = x + p.cos(a + halfAngle) * size * 0.5;
-      sy = y + p.sin(a + halfAngle) * size * 0.5;
+      sx = x + p.cos(a + halfAngle) * size * 0.3;
+      sy = y + p.sin(a + halfAngle) * size * 0.3;
       p.vertex(sx, sy);
     }
     p.endShape(p.CLOSE);
@@ -426,8 +424,8 @@ new p5((sketch) => {
 
   function drawghostLine(x, y, size, color, p) {
     p.stroke(color.r, color.g, color.b);
-    p.strokeWeight(2); // You can adjust the stroke weight as needed
-    let angle = p.PI / 4; // 45 degrees, but you can set any angle you like
+    p.strokeWeight(3);
+    let angle = p.PI / 2;
     let xOffset = size * p.cos(angle);
     let yOffset = size * p.sin(angle);
     p.line(x - xOffset, y - yOffset, x + xOffset, y + yOffset);
@@ -436,7 +434,7 @@ new p5((sketch) => {
 
   function drawCross(x, y, size, color, p) {
     p.stroke(color.r, color.g, color.b);
-    p.strokeWeight(2); // Consistent with other shapes
+    p.strokeWeight(3); // Consistent with other shapes
     p.line(x - size / 2, y, x + size / 2, y); // Horizontal line
     p.line(x, y - size / 2, x, y + size / 2); // Vertical line
     p.noStroke();
